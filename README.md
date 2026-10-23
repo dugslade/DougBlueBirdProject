@@ -12,18 +12,20 @@ An offline-first, mobile Progressive Web App (PWA) for Moraine State Park volunt
 2. **Instant QR Code Scanning:**
    - Scan box QR codes with the phone's native camera or using the built-in in-app camera scanner.
    - Pre-fills Box Number and Trail Zone instantly.
-3. **Optimized for Field Use:**
+3. **Zero Configuration for Volunteers:**
+   - The master Google Apps Script webhook URL is embedded directly into the app. Volunteers never need to configure settings.
+4. **Optimized for Field Use:**
    - Large tap targets and +/- stepper buttons for rapid logging with one thumb.
    - Auto-remembers volunteer name so they never have to re-type it.
    - 1-tap GPS coordinates capture.
-4. **Zero-Loss Data Queue & Auto-Sync:**
-   - Every inspection is saved locally first.
+5. **Zero-Loss Data Queue & Auto-Sync:**
+   - Every inspection is saved locally on the device first.
    - When the phone reconnects to cell service or home Wi-Fi, it automatically syncs all pending checks to your Google Sheet under `dugslade@gmail.com`.
-5. **Offline CSV Backup:**
+6. **Offline CSV Backup:**
    - Volunteers or coordinators can download a full `.csv` backup of all checks directly from their phone anytime.
-6. **Printable QR Code Generator (`qr-generator.html`):**
+7. **Printable QR Code Generator (`qr-generator.html`):**
    - Built-in generator to print weatherproof QR code stickers/labels for all Moraine boxes.
-7. **Species & Nest Identification Guide:**
+8. **Species & Nest Identification Guide:**
    - In-app guide for Eastern Bluebirds, Tree Swallows, House Wrens, Chickadees, and invasive House Sparrows.
 
 ---
@@ -48,6 +50,46 @@ DougBlueBirdProject/
 └── google-apps-script/
     └── Code.gs                 # Webhook backend script for dugslade@gmail.com
 ```
+
+---
+
+## 📱 How New Volunteers Access & Prep the App
+
+Because web browsers need to download the app files at least once while online to store them in the phone's offline cache, here are the 3 best ways to prepare volunteers:
+
+### 1. Pre-Season Email / Text (Recommended)
+Send volunteers a quick message before they head out for the season:
+
+> *"Hi Team! Before heading out to Moraine State Park, please open this link on your phone while connected to Wi-Fi:*  
+> 👉 **`https://dugslade.github.io/DougBlueBirdProject/`**  
+> *Tap **Share → Add to Home Screen** (iPhone) or **Install App** (Android). The app will now work anywhere in the park, even without cell service!"*
+
+### 2. Trailhead / Parking Lot "Start Here" QR Code
+Most park parking lots and boat launches (e.g. McDanels Launch, Pleasant Valley) have at least basic cell signal, whereas deep wooded trails do not.
+- Place a **"Welcome / Start Here" QR code** on the trailhead bulletin board or parking kiosk.
+- Volunteers scan it once at their car before walking the trail. That 2-second scan downloads and locks the app into their phone's offline cache.
+
+### 3. Automatic Caching on First Box Scan
+If a new volunteer forgets to prep ahead of time, the moment they scan **any box** where they have even 1 bar of signal:
+- The app loads.
+- The **Service Worker silently saves the entire app into phone storage** in the background.
+- As they walk deeper into the woods where signal drops to zero, all subsequent box scans will automatically load from their local cache instantly!
+
+---
+
+## 📲 How to Install on Phone (5 Seconds)
+
+| **iPhone (Safari)** | **Android (Chrome)** |
+| :--- | :--- |
+| 1. Open the URL in Safari | 1. Open the URL in Chrome |
+| 2. Tap the **Share** button (box with up arrow ⎋) | 2. Tap the **3 dots** (⋮) in top right |
+| 3. Tap **"Add to Home Screen"** | 3. Tap **"Install App"** or **"Add to Home screen"** |
+
+**Benefits after installing:**
+- Bluebird app icon appears on their home screen.
+- Launches full-screen like a native app (no browser search bar).
+- Opens **instantly without internet**.
+- Scanning any box QR code opens directly into the app.
 
 ---
 
@@ -78,26 +120,27 @@ DougBlueBirdProject/
 
 ### Step 3: Link Webhook to the App
 
+The URL is already baked into `app.js` as the default. To verify or override:
 1. Open the Moraine Bluebird Web App.
 2. Tap the **⚙️ Settings** tab.
-3. Paste your Web App URL into the **Google Apps Script Webhook URL** field.
+3. Your Web App URL should be pre-populated.
 4. Click **🧪 Test Connection** and then **💾 Save Settings**.
 5. Check your Google Sheet — you will see the **Inspections** sheet automatically created with styled forest-green headers!
 
 ---
 
-## 🌐 Free Hosting Options for Volunteers
+## 🌐 Free HTTPS Hosting via GitHub Pages
 
 To allow volunteers to access the app URL on their phones:
 
-### Option A: GitHub Pages (Recommended — 2 minutes)
-1. Push this folder to a GitHub repository under your account.
-2. Go to **Settings → Pages**.
-3. Set Source to `main` branch `/ (root)` and click **Save**.
-4. GitHub gives you a free HTTPS URL: `https://dugslade.github.io/DougBlueBirdProject/`.
-
-### Option B: Cloudflare Pages / Netlify / Vercel
-- Drag and drop the `DougBlueBirdProject` folder into [Netlify Drop](https://app.netlify.com/drop) or Cloudflare Pages for instant free HTTPS hosting.
+1. Go to your repository on GitHub:
+   [https://github.com/dugslade/DougBlueBirdProject/settings/pages](https://github.com/dugslade/DougBlueBirdProject/settings/pages)
+2. Under **Build and deployment**:
+   - **Source:** `Deploy from a branch`
+   - **Branch:** Select `main` and folder `/ (root)`
+3. Click **Save**.
+4. GitHub provides your permanent free HTTPS URL:
+   👉 **`https://dugslade.github.io/DougBlueBirdProject/`**
 
 ---
 
@@ -111,13 +154,9 @@ To allow volunteers to access the app URL on their phones:
 
 ---
 
-## 📱 How Volunteers Use It
+## 📝 Volunteer Field Inspection Workflow
 
-1. **One-Time Installation:**
-   - Volunteer opens the link on Safari (iOS) or Chrome (Android).
-   - Taps **Share / Menu → Add to Home Screen**.
-   - The app now lives on their phone like any native app and opens instantly without internet.
-2. **At the Bird Box:**
+1. **At the Bird Box:**
    - Volunteer points their phone camera at the QR code on the box.
    - The app opens with Box Number and Trail already filled in.
    - Volunteer logs:
@@ -126,6 +165,6 @@ To allow volunteers to access the app URL on their phones:
      - Chick stage (Hatchling / Pin Feathers / Feathered)
      - Maintenance notes / comments
    - Taps **Save Inspection Check**.
-3. **Automatic Sync:**
-   - If offline: Data is saved safely into phone storage.
+2. **Automatic Sync:**
+   - If offline: Data is saved safely into phone storage with a yellow badge.
    - When signal is restored: Data automatically syncs into your master Google Sheet under `dugslade@gmail.com`.
