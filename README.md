@@ -30,6 +30,12 @@ An offline-first, mobile Progressive Web App (PWA) for Moraine State Park volunt
 
 ---
 
+## 🏗️ System Architecture
+
+![Moraine Bluebird System Architecture](architecture.svg)
+
+---
+
 ## 📁 Project Structure
 
 ```

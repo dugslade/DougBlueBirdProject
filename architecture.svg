@@ -1,0 +1,220 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" width="1200" height="780" style="background:#f8fafc; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Shadows & Gradients -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="125%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    
+    <!-- Gradients -->
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#081c15"/>
+      <stop offset="100%" stop-color="#1b4332"/>
+    </linearGradient>
+    <linearGradient id="fieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdf4"/>
+      <stop offset="100%" stop-color="#dcfce7"/>
+    </linearGradient>
+    <linearGradient id="pwaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0f9ff"/>
+    </linearGradient>
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#eff6ff"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+
+    <!-- Markers for arrows -->
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#15803d"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7"/>
+    </marker>
+    <marker id="arrowDark" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155"/>
+    </marker>
+  </defs>
+
+  <!-- ==================== HEADER BANNER ==================== -->
+  <rect x="30" y="24" width="1140" height="74" rx="14" fill="url(#headerGrad)" filter="url(#cardShadow)"/>
+  
+  <circle cx="70" cy="61" r="22" fill="#2d6a4f"/>
+  <!-- Bird Icon in Header -->
+  <path d="M 60,68 C 55,60 62,50 72,50 C 78,50 83,55 85,61 C 80,63 74,65 68,68 Z" fill="#38bdf8"/>
+  <circle cx="74" cy="55" r="2" fill="#ffffff"/>
+  <polygon points="82,56 90,58 82,60" fill="#f59e0b"/>
+
+  <text x="106" y="52" fill="#ffffff" font-size="20" font-weight="800" letter-spacing="-0.02em">Moraine State Park Bluebird Trail Monitoring System</text>
+  <text x="106" y="73" fill="#86efac" font-size="12" font-weight="600">OFFLINE-FIRST PROGRESSIVE WEB APP (PWA) ARCHITECTURE • DUGSLADE@GMAIL.COM</text>
+
+  <rect x="1000" y="44" width="145" height="34" rx="17" fill="rgba(255,255,255,0.15)"/>
+  <circle cx="1018" cy="61" r="5" fill="#22c55e"/>
+  <text x="1032" y="66" fill="#ffffff" font-size="11" font-weight="700">100% Offline Ready</text>
+
+  <!-- ==================== SECTION 1: FIELD & TRAIL ==================== -->
+  <rect x="30" y="118" width="560" height="630" rx="14" fill="url(#fieldGrad)" stroke="#86efac" stroke-width="2" filter="url(#cardShadow)"/>
+  
+  <rect x="46" y="132" width="220" height="28" rx="6" fill="#1b4332"/>
+  <text x="58" y="151" fill="#ffffff" font-size="12" font-weight="700">🌲 FIELD ZONE (Zero Signal)</text>
+
+  <!-- Box Card -->
+  <rect x="50" y="174" width="520" height="110" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+  
+  <!-- Bird Box graphic -->
+  <polygon points="75,225 105,195 135,225 130,265 80,265" fill="#402e1c" opacity="0.8"/>
+  <circle cx="105" cy="232" r="10" fill="#1b130c"/>
+  
+  <text x="150" y="202" fill="#1b4332" font-size="15" font-weight="800">Bird Nesting Box (e.g., Box #14)</text>
+  <text x="150" y="222" fill="#475569" font-size="12">Mounted along North Shore / Pleasant Valley Trails</text>
+  
+  <!-- QR Label Tag -->
+  <rect x="150" y="235" width="240" height="32" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="3,3"/>
+  <rect x="156" y="241" width="20" height="20" fill="#0f172a" rx="2"/>
+  <!-- mini QR dots -->
+  <rect x="158" y="243" width="6" height="6" fill="#ffffff"/>
+  <rect x="168" y="253" width="6" height="6" fill="#ffffff"/>
+  <text x="184" y="256" fill="#0f172a" font-size="11" font-weight="700">QR Code: ?box=14&amp;trail=NorthShore</text>
+
+  <!-- Volunteer Phone Container -->
+  <rect x="50" y="304" width="520" height="424" rx="12" fill="url(#pwaGrad)" stroke="#38bdf8" stroke-width="2" filter="url(#cardShadow)"/>
+  
+  <rect x="66" y="318" width="240" height="26" rx="6" fill="#0284c7"/>
+  <text x="76" y="336" fill="#ffffff" font-size="12" font-weight="700">📱 Volunteer Phone (iOS / Android)</text>
+
+  <!-- PWA Components -->
+  <!-- 1. Scanner & Launch -->
+  <rect x="70" y="358" width="230" height="74" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="82" y="380" fill="#0369a1" font-size="13" font-weight="700">📷 Native / In-App Scanner</text>
+  <text x="82" y="400" fill="#64748b" font-size="11">Reads Box QR Code</text>
+  <text x="82" y="418" fill="#15803d" font-size="10" font-weight="600">✓ Auto-fills Box # &amp; Trail</text>
+
+  <!-- 2. Service Worker Engine -->
+  <rect x="320" y="358" width="230" height="74" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="332" y="380" fill="#0f766e" font-size="13" font-weight="700">⚙️ Service Worker (sw.js)</text>
+  <text x="332" y="400" fill="#64748b" font-size="11">Caches App Shell &amp; Libraries</text>
+  <text x="332" y="418" fill="#15803d" font-size="10" font-weight="600">✓ 100% Offline Loading</text>
+
+  <!-- 3. Field Form UI -->
+  <rect x="70" y="444" width="480" height="114" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="82" y="468" fill="#1b4332" font-size="13" font-weight="700">📝 Field Inspection Form (index.html + app.js)</text>
+  
+  <rect x="82" y="482" width="132" height="24" rx="4" fill="#f1f5f9"/>
+  <text x="92" y="498" fill="#334155" font-size="11" font-weight="600">🥚 Steppers (+ / -)</text>
+
+  <rect x="222" y="482" width="144" height="24" rx="4" fill="#f1f5f9"/>
+  <text x="232" y="498" fill="#334155" font-size="11" font-weight="600">🐦 Species Selector</text>
+
+  <rect x="374" y="482" width="164" height="24" rx="4" fill="#f1f5f9"/>
+  <text x="384" y="498" fill="#334155" font-size="11" font-weight="600">📍 1-Tap GPS Location</text>
+
+  <rect x="82" y="514" width="210" height="24" rx="4" fill="#f1f5f9"/>
+  <text x="92" y="530" fill="#334155" font-size="11" font-weight="600">🛠️ Maintenance Checklist</text>
+
+  <rect x="300" y="514" width="238" height="24" rx="4" fill="#f1f5f9"/>
+  <text x="310" y="530" fill="#334155" font-size="11" font-weight="600">👤 Auto-saved Volunteer Name</text>
+
+  <!-- 4. Local Queue & Storage -->
+  <rect x="70" y="570" width="480" height="138" rx="8" fill="url(#amberGrad)" stroke="#f59e0b" stroke-width="2"/>
+  <text x="82" y="594" fill="#b45309" font-size="13" font-weight="800">💾 Local Storage Queue (Phone Storage / IndexedDB)</text>
+  <text x="82" y="614" fill="#78350f" font-size="11">Every check is committed locally FIRST — Zero data loss even if phone powers off</text>
+  
+  <rect x="82" y="626" width="210" height="28" rx="6" fill="#ffffff" stroke="#fcd34d"/>
+  <circle cx="96" cy="640" r="4" fill="#f59e0b"/>
+  <text x="108" y="644" fill="#92400e" font-size="11" font-weight="700">Offline Queue: [Item 1, Item 2...]</text>
+
+  <rect x="302" y="626" width="160" height="28" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="314" y="644" fill="#0f172a" font-size="11" font-weight="700">📥 Export CSV Backup</text>
+
+  <text x="82" y="682" fill="#b45309" font-size="11" font-weight="700">🔄 Background Listener: Detects when cellular or Wi-Fi reconnects</text>
+
+  <!-- ==================== CONNECTOR ARROWS (FIELD TO CLOUD) ==================== -->
+  
+  <!-- Arrow 1: Box to Phone -->
+  <path d="M 270,284 L 270,302" stroke="#0284c7" stroke-width="3" fill="none" marker-end="url(#arrowBlue)"/>
+  
+  <!-- Arrow 2: Sync to Cloud -->
+  <path d="M 550,639 C 590,639 600,430 630,430" stroke="#15803d" stroke-width="3" stroke-dasharray="6,4" fill="none" marker-end="url(#arrowGreen)"/>
+  
+  <rect x="562" y="510" width="80" height="42" rx="6" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" filter="url(#cardShadow)"/>
+  <text x="570" y="527" fill="#15803d" font-size="10" font-weight="800">AUTO-SYNC</text>
+  <text x="568" y="542" fill="#475569" font-size="9">When Online</text>
+
+  <!-- ==================== SECTION 2: CLOUD BACKEND ==================== -->
+  <rect x="640" y="118" width="530" height="440" rx="14" fill="url(#cloudGrad)" stroke="#93c5fd" stroke-width="2" filter="url(#cardShadow)"/>
+  
+  <rect x="656" y="132" width="280" height="28" rx="6" fill="#1e3a8a"/>
+  <text x="668" y="151" fill="#ffffff" font-size="12" font-weight="700">☁️ CLOUD BACKEND (dugslade@gmail.com)</text>
+
+  <!-- Hosting Card -->
+  <rect x="660" y="174" width="490" height="82" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+  <text x="674" y="200" fill="#1e40af" font-size="14" font-weight="800">🌐 Free HTTPS Hosting (GitHub Pages)</text>
+  <text x="674" y="222" fill="#0284c7" font-size="12" font-weight="600">https://dugslade.github.io/DougBlueBirdProject/</text>
+  <text x="674" y="242" fill="#64748b" font-size="11">Delivers PWA assets, Manifest, &amp; Service Worker to phones on first load</text>
+
+  <!-- Webhook Script Card -->
+  <rect x="660" y="270" width="490" height="110" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#cardShadow)"/>
+  <text x="674" y="296" fill="#1e3a8a" font-size="14" font-weight="800">⚡ Google Apps Script Webhook (Code.gs)</text>
+  <text x="674" y="318" fill="#475569" font-size="12">De-duplication via LockService &amp; Local Sync IDs</text>
+  <text x="674" y="338" fill="#475569" font-size="11">Handles single &amp; batch JSON payloads from offline queue</text>
+  
+  <rect x="674" y="348" width="180" height="22" rx="4" fill="#dcfce7"/>
+  <text x="682" y="363" fill="#15803d" font-size="10" font-weight="700">✓ Secure Webhook: /macros/s/.../exec</text>
+
+  <!-- Google Sheet Card -->
+  <rect x="660" y="394" width="490" height="144" rx="10" fill="#1b4332" stroke="#16a34a" stroke-width="2" filter="url(#cardShadow)"/>
+  
+  <text x="676" y="422" fill="#ffffff" font-size="15" font-weight="800">📊 Master Google Sheet</text>
+  <text x="676" y="442" fill="#86efac" font-size="12" font-weight="600">"Moraine State Park - Bluebird Trail Monitoring" (dugslade@gmail.com)</text>
+
+  <!-- Mini Sheet Table Mock -->
+  <rect x="676" y="456" width="458" height="66" rx="6" fill="#ffffff"/>
+  
+  <rect x="676" y="456" width="458" height="22" rx="6" fill="#2d6a4f"/>
+  <text x="686" y="471" fill="#ffffff" font-size="10" font-weight="700">Timestamp</text>
+  <text x="760" y="471" fill="#ffffff" font-size="10" font-weight="700">Box #</text>
+  <text x="810" y="471" fill="#ffffff" font-size="10" font-weight="700">Trail</text>
+  <text x="860" y="471" fill="#ffffff" font-size="10" font-weight="700">Volunteer</text>
+  <text x="930" y="471" fill="#ffffff" font-size="10" font-weight="700">Species</text>
+  <text x="990" y="471" fill="#ffffff" font-size="10" font-weight="700">Eggs</text>
+  <text x="1030" y="471" fill="#ffffff" font-size="10" font-weight="700">Chicks</text>
+  <text x="1080" y="471" fill="#ffffff" font-size="10" font-weight="700">Fledg</text>
+
+  <text x="686" y="495" fill="#334155" font-size="10">2026-10-23</text>
+  <text x="760" y="495" fill="#0f172a" font-size="10" font-weight="700">Box 14</text>
+  <text x="810" y="495" fill="#334155" font-size="10">North Shore</text>
+  <text x="860" y="495" fill="#334155" font-size="10">Doug S.</text>
+  <text x="930" y="495" fill="#0284c7" font-size="10" font-weight="600">Bluebird</text>
+  <text x="996" y="495" fill="#15803d" font-size="10" font-weight="700">4</text>
+  <text x="1036" y="495" fill="#15803d" font-size="10" font-weight="700">0</text>
+  <text x="1086" y="495" fill="#334155" font-size="10">0</text>
+
+  <text x="686" y="513" fill="#334155" font-size="10">2026-10-23</text>
+  <text x="760" y="513" fill="#0f172a" font-size="10" font-weight="700">Box 15</text>
+  <text x="810" y="513" fill="#334155" font-size="10">North Shore</text>
+  <text x="860" y="513" fill="#334155" font-size="10">Sarah M.</text>
+  <text x="930" y="513" fill="#0284c7" font-size="10" font-weight="600">Swallow</text>
+  <text x="996" y="513" fill="#15803d" font-size="10" font-weight="700">5</text>
+  <text x="1036" y="513" fill="#15803d" font-size="10" font-weight="700">2</text>
+  <text x="1086" y="513" fill="#334155" font-size="10">0</text>
+
+  <!-- ==================== SECTION 3: COORDINATOR TOOLS ==================== -->
+  <rect x="640" y="572" width="530" height="176" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" filter="url(#cardShadow)"/>
+  
+  <rect x="656" y="586" width="220" height="26" rx="6" fill="#d97706"/>
+  <text x="668" y="604" fill="#ffffff" font-size="12" font-weight="700">🖨️ FIELD SETUP &amp; ADMIN TOOLS</text>
+
+  <rect x="660" y="622" width="490" height="110" rx="8" fill="#fefce8" stroke="#fde047" stroke-width="1.5"/>
+  <text x="674" y="646" fill="#854d0e" font-size="14" font-weight="800">QR Code Label Generator (qr-generator.html)</text>
+  <text x="674" y="668" fill="#713f12" font-size="12">1. Specify Trail Name &amp; Box Numbers (e.g., Box 1 to 40)</text>
+  <text x="674" y="688" fill="#713f12" font-size="12">2. Batch generates printable sheets with high-contrast QR codes</text>
+  <text x="674" y="708" fill="#15803d" font-size="11" font-weight="700">3. Print &amp; mount on weatherproof labels at Moraine State Park</text>
+
+</svg>
