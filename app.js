@@ -10,7 +10,7 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_SETTINGS = {
-  scriptUrl: '',
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbwW6O8ity04LON-VJVOFnUBd_PQrd-MAgCxzjJ6mhXVi2d9nmoj8gX3MHQREJAMbZ755Q/exec',
   defaultVolunteer: '',
   defaultTrail: 'North Shore Trail'
 };
@@ -61,6 +61,10 @@ function loadSettings() {
     const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     if (saved) {
       state.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+    }
+    // Ensure default script URL is used if saved is blank
+    if (!state.settings.scriptUrl) {
+      state.settings.scriptUrl = DEFAULT_SETTINGS.scriptUrl;
     }
   } catch (e) {
     console.error('Error loading settings:', e);
