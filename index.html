@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Moraine State Park Bluebird Monitor</title>
+  
+  <!-- PWA & Mobile Meta -->
+  <meta name="theme-color" content="#2d6a4f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Moraine Birds">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="brand">
+        <img src="icons/icon.svg" alt="Moraine Bluebirds" class="brand-icon">
+        <div class="brand-text">
+          <h1>Moraine Bluebird Monitor</h1>
+          <p>Moraine State Park • Field Trail</p>
+        </div>
+      </div>
+      <button class="btn-mini-sync" id="btnSyncHeader" title="Sync pending checks">
+        Sync (<span id="headerPendingCount">0</span>)
+      </button>
+    </div>
+
+    <!-- Live Connectivity & Queue Status -->
+    <div class="status-banner online" id="statusBanner">
+      <div class="status-indicator">
+        <span class="dot online" id="statusDot"></span>
+        <span id="statusText">Online • Ready</span>
+      </div>
+      <span id="queueStatusText">All checks synced</span>
+    </div>
+  </header>
+
+  <!-- Sticky Tabs Navigation -->
+  <nav class="app-tabs">
+    <button class="tab-btn active" data-tab="tab-form">
+      <span>📝 Log Check</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-history">
+      <span>📋 History <span class="tab-badge" id="badgePending" style="display:none">0</span></span>
+    </button>
+    <button class="tab-btn" data-tab="tab-guide">
+      <span>🐦 Bird Guide</span>
+    </button>
+    <button class="tab-btn" data-tab="tab-settings">
+      <span>⚙️ Settings</span>
+    </button>
+  </nav>
+
+  <!-- Main App Body -->
+  <main class="container">
+
+    <!-- ==================== TAB 1: FORM ==================== -->
+    <section class="tab-content active" id="tab-form">
+      <form id="inspectionForm">
+        
+        <!-- Box Identification Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📍 Box Location & Identifier</span>
+          </div>
+
+          <div class="form-group">
+            <label for="boxCode">Box Number / Code <span class="required">*</span></label>
+            <div class="input-with-action">
+              <input type="text" id="boxCode" name="boxCode" placeholder="e.g. Box 14 or MSP-014" required autocomplete="off">
+              <button type="button" class="btn-action" id="btnOpenScanner">
+                📷 Scan QR
+              </button>
+            </div>
+            <p class="helper-text">Scan box QR code or type box number</p>
+          </div>
+
+          <div class="form-group">
+            <label for="trailArea">Trail / Area</label>
+            <select id="trailArea" name="trailArea">
+              <option value="North Shore Trail">North Shore Trail</option>
+              <option value="South Shore / Pleasant Valley">South Shore / Pleasant Valley</option>
+              <option value="Sunken Garden Trail">Sunken Garden Trail</option>
+              <option value="Lake Arthur Day Use">Lake Arthur Day Use</option>
+              <option value="Watts Bay / Marina">Watts Bay / Marina</option>
+              <option value="McDanels Launch Area">McDanels Launch Area</option>
+              <option value="Other / General">Other / General</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="volunteerName">Volunteer Name <span class="required">*</span></label>
+            <input type="text" id="volunteerName" name="volunteerName" placeholder="Your Full Name" required>
+            <p class="helper-text">Saved automatically for future checks</p>
+          </div>
+
+          <div class="form-group">
+            <label for="checkDateTime">Date & Time</label>
+            <input type="datetime-local" id="checkDateTime" name="checkDateTime">
+          </div>
+
+          <div class="form-group">
+            <label>GPS Coordinates</label>
+            <div class="input-with-action">
+              <input type="text" id="gpsCoords" name="gpsCoords" placeholder="Latitude, Longitude (Optional)" readonly>
+              <button type="button" class="btn-action secondary" id="btnGetGPS">
+                📍 Get GPS
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Box Status Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🔍 Box Status & Species</span>
+          </div>
+
+          <div class="form-group">
+            <label>Box Condition / In Use <span class="required">*</span></label>
+            <div class="chips-grid">
+              <label class="chip-label">
+                <input type="radio" name="boxInUse" value="Active Nest" checked>
+                <span class="chip-card">🪺 Active Nest</span>
+              </label>
+              <label class="chip-label">
+                <input type="radio" name="boxInUse" value="Empty / No Nest">
+                <span class="chip-card">⚪ Empty / No Nest</span>
+              </label>
+              <label class="chip-label">
+                <input type="radio" name="boxInUse" value="Old Nest Cleaned">
+                <span class="chip-card">🧹 Cleaned Out</span>
+              </label>
+              <label class="chip-label">
+                <input type="radio" name="boxInUse" value="Wasps / Competitor Removed">
+                <span class="chip-card warning-chip">⚠️ Pests Removed</span>
+              </label>
+              <label class="chip-label">
+                <input type="radio" name="boxInUse" value="Damaged / Needs Repair">
+                <span class="chip-card warning-chip">🛠️ Needs Repair</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="species">Bird Species</label>
+            <select id="species" name="species">
+              <option value="Eastern Bluebird">Eastern Bluebird</option>
+              <option value="Tree Swallow">Tree Swallow</option>
+              <option value="House Wren">House Wren</option>
+              <option value="Black-capped Chickadee">Black-capped Chickadee</option>
+              <option value="Tufted Titmouse">Tufted Titmouse</option>
+              <option value="House Sparrow (Invasive - Remove)">House Sparrow (Invasive - Please Remove)</option>
+              <option value="None / Empty">None / Empty</option>
+              <option value="Other / Unknown">Other / Unknown Species</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="nestStage">Nest Building Stage</label>
+            <select id="nestStage" name="nestStage">
+              <option value="No Nest">No Nest</option>
+              <option value="Started / Partial Nest">Started / Partial Nest</option>
+              <option value="Completed Nest Cup">Completed Nest Cup</option>
+              <option value="Flattened with Droppings (Fledge Sign)">Flattened with Droppings (Fledge Sign)</option>
+              <option value="Twig fill (House Wren)">Twig fill (House Wren)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Counts Card (Eggs, Young, Fledglings) -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🥚 Egg & Chick Counts</span>
+          </div>
+
+          <!-- Number of Eggs -->
+          <div class="form-group">
+            <label>Number of Eggs</label>
+            <div class="stepper-container">
+              <button type="button" class="stepper-btn" data-action="dec" data-target="numEggs">-</button>
+              <span class="stepper-value" id="valEggs">0</span>
+              <input type="hidden" id="numEggs" name="numEggs" value="0">
+              <button type="button" class="stepper-btn" data-action="inc" data-target="numEggs">+</button>
+            </div>
+          </div>
+
+          <!-- Number of Live Young / Chicks -->
+          <div class="form-group">
+            <label>Number of Live Chicks / Young</label>
+            <div class="stepper-container">
+              <button type="button" class="stepper-btn" data-action="dec" data-target="numChicks">-</button>
+              <span class="stepper-value" id="valChicks">0</span>
+              <input type="hidden" id="numChicks" name="numChicks" value="0">
+              <button type="button" class="stepper-btn" data-action="inc" data-target="numChicks">+</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="chickStage">Chick Development Stage</label>
+            <select id="chickStage" name="chickStage">
+              <option value="N/A - No Chicks">N/A - No Chicks</option>
+              <option value="Hatchlings / Naked (Days 1-4)">Hatchlings / Naked (Days 1-4)</option>
+              <option value="Pin Feathers / Eyes Opening (Days 5-11)">Pin Feathers / Eyes Opening (Days 5-11)</option>
+              <option value="Fully Feathered / Near Fledging (Days 12-18)">Fully Feathered / Near Fledging (Days 12-18) *Do not open box after day 13</option>
+            </select>
+          </div>
+
+          <!-- Number of Dead Young -->
+          <div class="form-group">
+            <label>Number of Dead Young (if any)</label>
+            <div class="stepper-container">
+              <button type="button" class="stepper-btn" data-action="dec" data-target="numDead">-</button>
+              <span class="stepper-value" id="valDead">0</span>
+              <input type="hidden" id="numDead" name="numDead" value="0">
+              <button type="button" class="stepper-btn" data-action="inc" data-target="numDead">+</button>
+            </div>
+          </div>
+
+          <!-- Number of Fledglings -->
+          <div class="form-group">
+            <label>Number of Fledglings Observed</label>
+            <div class="stepper-container">
+              <button type="button" class="stepper-btn" data-action="dec" data-target="numFledged">-</button>
+              <span class="stepper-value" id="valFledged">0</span>
+              <input type="hidden" id="numFledged" name="numFledged" value="0">
+              <button type="button" class="stepper-btn" data-action="inc" data-target="numFledged">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Maintenance & Actions Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🛠️ Maintenance & Actions Taken</span>
+          </div>
+
+          <div class="form-group">
+            <label>Box Condition Checklist</label>
+            <div class="checkbox-list">
+              <label class="checkbox-item">
+                <input type="checkbox" name="actionPredatorGuard" value="Yes" checked>
+                <span>Predator Baffle / Guard Intact</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="actionCleaned" value="Yes">
+                <span>Cleaned out old nest after fledge</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="actionWasps" value="Yes">
+                <span>Removed wasp nest / spider egg sacs</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" name="actionNeedsRepair" value="Yes">
+                <span style="color:var(--danger); font-weight:600;">Box Needs Maintenance / Repair</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="comments">Comments / Maintenance Notes</label>
+            <textarea id="comments" name="comments" rows="3" placeholder="Enter observations, parent bird behavior, predator signs, repair details..."></textarea>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-submit" id="btnSubmitCheck">
+          <span>💾 Save Inspection Check</span>
+        </button>
+
+      </form>
+    </section>
+
+    <!-- ==================== TAB 2: HISTORY & QUEUE ==================== -->
+    <section class="tab-content" id="tab-history">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 Local Inspection History</span>
+          <button class="btn-action" id="btnSyncHistoryTab">
+            🔄 Sync Now
+          </button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; gap:8px;">
+          <button class="btn-action secondary flex-1" id="btnExportCSV">
+            📥 Export CSV
+          </button>
+          <button class="btn-action secondary flex-1" id="btnClearSynced">
+            🧹 Clear Synced
+          </button>
+        </div>
+
+        <div id="historyList">
+          <p class="text-center" style="color:var(--text-muted); padding:20px;">No inspections recorded yet on this device.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: SPECIES GUIDE ==================== -->
+    <section class="tab-content" id="tab-guide">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🐦 Moraine State Park Bird & Nest Guide</span>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-title">Eastern Bluebird (Target Native)</div>
+          <span class="guide-tag native">✓ Native Species</span>
+          <p><strong>Nest:</strong> Neat, tidy cup made of fine grasses, pine needles, or weed stems.</p>
+          <p><strong>Eggs:</strong> 4–6 clear sky-blue (occasionally pure white) unspotted eggs.</p>
+          <p><strong>Incubation / Fledge:</strong> 12–14 days incubation; 16–21 days until fledge.</p>
+          <p><strong>Note:</strong> Do NOT open the box after Day 13 of chick life to prevent premature fledging.</p>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-title">Tree Swallow (Native Competitor)</div>
+          <span class="guide-tag native">✓ Native Species</span>
+          <p><strong>Nest:</strong> Grass cup copiously lined with soft white or grey feathers.</p>
+          <p><strong>Eggs:</strong> 4–7 pure white, delicate eggs.</p>
+          <p><strong>Note:</strong> Excellent mosquito eaters! If paired with a bluebird box 15-20ft away, both species will nest peacefully side-by-side.</p>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-title">House Wren (Native Competitor)</div>
+          <span class="guide-tag native">✓ Native Protected</span>
+          <p><strong>Nest:</strong> Fills entire box almost to the hole with small coarse twigs, lined with feathers or hair.</p>
+          <p><strong>Eggs:</strong> 5–8 tiny pinkish-white eggs heavily speckled with cinnamon brown spots.</p>
+          <p><strong>Note:</strong> Wrens are legally protected under the Migratory Bird Treaty Act. Once they lay an egg, do NOT remove.</p>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-title">Black-capped Chickadee</div>
+          <span class="guide-tag native">✓ Native Species</span>
+          <p><strong>Nest:</strong> Thick soft base of green moss lined with rabbit fur or down.</p>
+          <p><strong>Eggs:</strong> 5–8 white eggs with reddish-brown speckles concentrated at the larger end.</p>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-title" style="color:var(--danger);">House Sparrow (Invasive Pest)</div>
+          <span class="guide-tag invasive">⚠️ Non-Native / Invasive</span>
+          <p><strong>Nest:</strong> Messy domed pile of coarse grass, paper scraps, straw, and cigarette butts with a side entrance.</p>
+          <p><strong>Eggs:</strong> 4–7 cream or dull white eggs heavily blotched with grey and brown.</p>
+          <p><strong>Action:</strong> House Sparrows attack and kill native bluebird adults and chicks. In Pennsylvania, House Sparrows are not protected — their nests and eggs should be completely removed and discarded.</p>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-title">🖨️ Printable QR Codes</div>
+          <p>To print QR codes for Moraine State Park boxes, visit the <a href="qr-generator.html" target="_blank" style="color:var(--primary); font-weight:700;">Moraine QR Code Generator Page</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: SETTINGS ==================== -->
+    <section class="tab-content" id="tab-settings">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">⚙️ Google Sheets Sync & Preferences</span>
+        </div>
+
+        <div class="form-group">
+          <label for="scriptUrl">Google Apps Script Webhook URL</label>
+          <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+          <p class="helper-text">Deployed from your master Google Sheet (dugslade@gmail.com)</p>
+          <div class="mt-2">
+            <button type="button" class="btn-action secondary" id="btnTestWebhook">
+              🧪 Test Connection
+            </button>
+            <button type="button" class="btn-action" id="btnSaveSettings">
+              💾 Save Settings
+            </button>
+          </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--border); margin:20px 0;">
+
+        <div class="form-group">
+          <label for="defaultVolunteer">Default Volunteer Name</label>
+          <input type="text" id="defaultVolunteer" placeholder="Your name">
+        </div>
+
+        <div class="form-group">
+          <label for="defaultTrail">Default Trail / Zone</label>
+          <select id="defaultTrail">
+            <option value="North Shore Trail">North Shore Trail</option>
+            <option value="South Shore / Pleasant Valley">South Shore / Pleasant Valley</option>
+            <option value="Sunken Garden Trail">Sunken Garden Trail</option>
+            <option value="Lake Arthur Day Use">Lake Arthur Day Use</option>
+            <option value="Watts Bay / Marina">Watts Bay / Marina</option>
+            <option value="McDanels Launch Area">McDanels Launch Area</option>
+            <option value="Other / General">Other / General</option>
+          </select>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--border); margin:20px 0;">
+
+        <div class="form-group">
+          <label>Data Management</label>
+          <p class="helper-text mb-2">Clear local browser cache on this device if needed.</p>
+          <button type="button" class="btn-action secondary" id="btnResetAll" style="color:var(--danger); border-color:var(--danger-bg);">
+            🗑️ Clear All Local Data
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== QR SCANNER MODAL ==================== -->
+  <div class="modal" id="scannerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📷 Scan Box QR Code</h3>
+        <button type="button" class="modal-close" id="btnCloseScanner">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="reader"></div>
+        <p class="helper-text text-center mt-2">Point your camera at the QR code on the bird box.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="lib/html5-qrcode.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

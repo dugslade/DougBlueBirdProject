@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1b4332"/>
+      <stop offset="100%" stop-color="#2d6a4f"/>
+    </linearGradient>
+    <linearGradient id="birdBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="60%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="chestRust" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+  
+  <!-- Bird Box Silhouette behind bird -->
+  <polygon points="120,240 256,150 392,240 370,410 142,410" fill="#402e1c" opacity="0.4"/>
+  <circle cx="256" cy="270" r="38" fill="#1b130c" opacity="0.6"/>
+  <rect x="250" y="315" width="12" height="35" rx="6" fill="#8d5b2c"/>
+  
+  <!-- Bluebird Graphic -->
+  <!-- Tail -->
+  <path d="M 210,330 L 150,440 L 180,445 L 240,355 Z" fill="#0369a1"/>
+  <path d="M 220,335 L 170,450 L 195,455 L 250,360 Z" fill="#0284c7"/>
+  
+  <!-- Body / Wing -->
+  <path d="M 240,210 C 210,230 180,280 200,350 C 210,380 250,390 280,360 C 310,330 330,280 320,230 C 310,210 270,195 240,210 Z" fill="url(#birdBlue)"/>
+  
+  <!-- Rust Chest -->
+  <path d="M 285,225 C 310,240 340,270 345,310 C 350,345 325,370 295,375 C 320,345 325,290 285,225 Z" fill="url(#chestRust)"/>
+  
+  <!-- Head -->
+  <circle cx="280" cy="185" r="42" fill="url(#birdBlue)"/>
+  
+  <!-- Eye -->
+  <circle cx="295" cy="180" r="6" fill="#0f172a"/>
+  <circle cx="297" cy="178" r="2" fill="#ffffff"/>
+  
+  <!-- Beak -->
+  <polygon points="318,182 355,188 318,196" fill="#f59e0b"/>
+  
+  <!-- Wing Feather Details -->
+  <path d="M 225,255 C 240,290 250,330 235,370" stroke="#bae6fd" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 245,260 C 260,295 270,335 255,375" stroke="#bae6fd" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.7"/>
+</svg>
