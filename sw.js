@@ -1,5 +1,5 @@
 // Moraine State Park Bluebird Trail - Offline Service Worker
-const CACHE_NAME = 'moraine-bluebirds-v1.0.1';
+const CACHE_NAME = 'moraine-bluebirds-v1.0.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,7 +12,12 @@ const ASSETS_TO_CACHE = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './lib/html5-qrcode.min.js',
-  './lib/qrcode.min.js'
+  './lib/qrcode.min.js',
+  './lib/leaflet/leaflet.js',
+  './lib/leaflet/leaflet.css',
+  './lib/leaflet/images/marker-icon.png',
+  './lib/leaflet/images/marker-icon-2x.png',
+  './lib/leaflet/images/marker-shadow.png'
 ];
 
 // Install: Cache all static assets

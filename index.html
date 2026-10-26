@@ -14,6 +14,7 @@
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   
+  <link rel="stylesheet" href="lib/leaflet/leaflet.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -48,11 +49,14 @@
     <button class="tab-btn active" data-tab="tab-form">
       <span>📝 Log Check</span>
     </button>
+    <button class="tab-btn" data-tab="tab-map">
+      <span>🗺️ Trail Map</span>
+    </button>
     <button class="tab-btn" data-tab="tab-history">
       <span>📋 History <span class="tab-badge" id="badgePending" style="display:none">0</span></span>
     </button>
     <button class="tab-btn" data-tab="tab-guide">
-      <span>🐦 Bird Guide</span>
+      <span>🐦 Guide</span>
     </button>
     <button class="tab-btn" data-tab="tab-settings">
       <span>⚙️ Settings</span>
@@ -274,7 +278,44 @@
       </form>
     </section>
 
-    <!-- ==================== TAB 2: HISTORY & QUEUE ==================== -->
+    <!-- ==================== TAB 2: TRAIL MAP ==================== -->
+    <section class="tab-content" id="tab-map">
+      <div class="card" style="padding: 14px;">
+        <div class="card-header" style="margin-bottom: 8px;">
+          <span class="card-title">🗺️ Moraine Bluebird Trail Map</span>
+          <button class="btn-action secondary" id="btnRefreshBoxes" title="Refresh box locations from Google Sheet" style="padding: 4px 10px; font-size: 0.78rem;">
+            🔄 Refresh Pins
+          </button>
+        </div>
+
+        <!-- Trail Filter Buttons & Locate Me -->
+        <div class="map-controls">
+          <div class="map-filter-group" id="mapFilterGroup">
+            <button class="map-filter-btn active" data-filter="all">All Boxes</button>
+            <button class="map-filter-btn" data-filter="North Shore">North Shore</button>
+            <button class="map-filter-btn" data-filter="South Shore">South Shore</button>
+          </div>
+          <button class="btn-action" id="btnLocateUser" style="padding: 6px 12px; font-size: 0.82rem;">
+            📍 My Location
+          </button>
+        </div>
+
+        <!-- Leaflet Map Frame -->
+        <div id="mapContainer" class="map-frame"></div>
+
+        <!-- Map Footer & Legend -->
+        <div class="map-footer">
+          <div class="map-legend">
+            <span class="legend-item"><span class="legend-dot north"></span> North Shore</span>
+            <span class="legend-item"><span class="legend-dot south"></span> South Shore</span>
+            <span class="legend-item"><span class="legend-dot user"></span> You</span>
+          </div>
+          <span id="mapBoxCount" class="map-count-badge">Loading boxes...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: HISTORY & QUEUE ==================== -->
     <section class="tab-content" id="tab-history">
       <div class="card">
         <div class="card-header">
@@ -421,6 +462,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
+  <script src="lib/leaflet/leaflet.js"></script>
   <script src="lib/html5-qrcode.min.js"></script>
   <script src="app.js"></script>
 </body>

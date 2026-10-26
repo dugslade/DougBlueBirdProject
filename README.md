@@ -21,11 +21,16 @@ An offline-first, mobile Progressive Web App (PWA) for Moraine State Park volunt
 5. **Zero-Loss Data Queue & Auto-Sync:**
    - Every inspection is saved locally on the device first.
    - When the phone reconnects to cell service or home Wi-Fi, it automatically syncs all pending checks to your Google Sheet under `dugslade@gmail.com`.
-6. **Offline CSV Backup:**
+6. **Interactive Trail Map (🗺️):**
+   - Live Leaflet map displaying all bluebird box locations across **North Shore** and **South Shore**.
+   - **"📍 My Location"** real-time GPS tracker showing volunteer position walking along the trail.
+   - Tapping any box pin opens its details and a **"📝 Log Inspection"** button that pre-fills the form for that box.
+   - Reads directly from the dedicated **"Box Locations"** master sheet in Google Sheets and caches offline!
+7. **Offline CSV Backup:**
    - Volunteers or coordinators can download a full `.csv` backup of all checks directly from their phone anytime.
-7. **Printable QR Code Generator (`qr-generator.html`):**
+8. **Printable QR Code Generator (`qr-generator.html`):**
    - Built-in generator to print weatherproof QR code stickers/labels for all Moraine boxes.
-8. **Species & Nest Identification Guide:**
+9. **Species & Nest Identification Guide:**
    - In-app guide for Eastern Bluebirds, Tree Swallows, House Wrens, Chickadees, and invasive House Sparrows.
 
 ---
@@ -52,7 +57,8 @@ DougBlueBirdProject/
 │   └── icon-512.png
 ├── lib/                        # Offline standalone JavaScript libraries
 │   ├── html5-qrcode.min.js     # Live camera QR scanner engine
-│   └── qrcode.min.js           # QR code generator library
+│   ├── qrcode.min.js           # QR code generator library
+│   └── leaflet/                # Offline Leaflet map engine, CSS, & pin assets
 └── google-apps-script/
     └── Code.gs                 # Webhook backend script for dugslade@gmail.com
 ```

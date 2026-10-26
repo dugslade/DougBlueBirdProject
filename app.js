@@ -6,7 +6,8 @@
 // Key constants & storage keys
 const STORAGE_KEYS = {
   INSPECTIONS: 'moraine_bluebird_inspections',
-  SETTINGS: 'moraine_bluebird_settings'
+  SETTINGS: 'moraine_bluebird_settings',
+  BOX_LOCATIONS: 'moraine_bluebird_box_locations'
 };
 
 const DEFAULT_SETTINGS = {
@@ -15,13 +16,27 @@ const DEFAULT_SETTINGS = {
   defaultTrail: 'North Shore'
 };
 
+// Default starter boxes for Moraine State Park (Lake Arthur)
+const DEFAULT_BOXES = [
+  { boxCode: 'Box 1', trailArea: 'North Shore', gpsCoords: '40.963124, -80.085432', lat: 40.963124, lng: -80.085432, description: 'Near North Shore Trailhead kiosk', status: 'Active' },
+  { boxCode: 'Box 2', trailArea: 'North Shore', gpsCoords: '40.964210, -80.083150', lat: 40.964210, lng: -80.083150, description: 'Open meadow near mile marker 0.3', status: 'Active' },
+  { boxCode: 'Box 3', trailArea: 'North Shore', gpsCoords: '40.965840, -80.081200', lat: 40.965840, lng: -80.081200, description: 'East of bicycle rental pavilion', status: 'Active' },
+  { boxCode: 'Box 4', trailArea: 'South Shore', gpsCoords: '40.942150, -80.098450', lat: 40.942150, lng: -80.098450, description: 'Pleasant Valley picnic area', status: 'Active' },
+  { boxCode: 'Box 5', trailArea: 'South Shore', gpsCoords: '40.940890, -80.095320', lat: 40.940890, lng: -80.095320, description: 'South Shore boat launch shoreline', status: 'Active' }
+];
+
 // Global state
 let state = {
   inspections: [],
+  boxLocations: [],
   settings: { ...DEFAULT_SETTINGS },
   isOnline: navigator.onLine,
   isSyncing: false,
-  html5QrCode: null
+  html5QrCode: null,
+  map: null,
+  markersGroup: null,
+  userMarker: null,
+  currentTrailFilter: 'all'
 };
 
 // ========================================================
@@ -30,11 +45,13 @@ let state = {
 document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   loadInspections();
+  loadBoxLocations();
   registerServiceWorker();
   initNavigation();
   initFormControls();
   initScanner();
   initSyncEngine();
+  initMapControls();
   checkUrlParams();
   renderHistory();
   updateSyncStatus();
@@ -148,6 +165,10 @@ function initNavigation() {
       const targetContent = document.getElementById(targetId);
       if (targetContent) {
         targetContent.classList.add('active');
+      }
+
+      if (targetId === 'tab-map') {
+        setTimeout(ensureMapInitialized, 100);
       }
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -841,6 +862,257 @@ function exportToCSV() {
 
   showToast('📥 CSV downloaded successfully!', 'success');
 }
+
+// ========================================================
+// BOX LOCATIONS & MAP ENGINE
+// ========================================================
+function loadBoxLocations() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.BOX_LOCATIONS);
+    if (saved) {
+      state.boxLocations = JSON.parse(saved);
+    } else {
+      state.boxLocations = [...DEFAULT_BOXES];
+      localStorage.setItem(STORAGE_KEYS.BOX_LOCATIONS, JSON.stringify(state.boxLocations));
+    }
+  } catch (e) {
+    console.error('Error loading box locations:', e);
+    state.boxLocations = [...DEFAULT_BOXES];
+  }
+
+  // If online, fetch fresh box locations from Google Sheet in background
+  if (navigator.onLine && state.settings.scriptUrl) {
+    fetchBoxLocationsFromGoogleSheet();
+  }
+}
+
+async function fetchBoxLocationsFromGoogleSheet(showFeedback = false) {
+  if (!state.settings.scriptUrl) return;
+
+  if (showFeedback) {
+    showToast('Refreshing box locations from Google Sheet...', 'warning');
+  }
+
+  try {
+    const url = state.settings.scriptUrl + (state.settings.scriptUrl.includes('?') ? '&' : '?') + 'action=get_boxes';
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.status === 'success' && Array.isArray(data.boxes) && data.boxes.length > 0) {
+        state.boxLocations = data.boxes;
+        localStorage.setItem(STORAGE_KEYS.BOX_LOCATIONS, JSON.stringify(data.boxes));
+        renderMapMarkers();
+        if (showFeedback) {
+          showToast(`✓ Loaded ${data.boxes.length} box locations from Google Sheet!`, 'success');
+        }
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not fetch boxes from Google Sheet, using local cache:', err);
+  }
+
+  if (showFeedback) {
+    showToast(`Using ${state.boxLocations.length} locally cached box locations`, 'info');
+  }
+}
+
+function initMapControls() {
+  // Trail filter buttons (All / North Shore / South Shore)
+  const filterBtns = document.querySelectorAll('.map-filter-btn');
+  filterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.currentTrailFilter = btn.dataset.filter;
+      renderMapMarkers();
+    });
+  });
+
+  // Refresh boxes button
+  const btnRefresh = document.getElementById('btnRefreshBoxes');
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', () => {
+      fetchBoxLocationsFromGoogleSheet(true);
+    });
+  }
+
+  // Locate User button
+  const btnLocate = document.getElementById('btnLocateUser');
+  if (btnLocate) {
+    btnLocate.addEventListener('click', locateUserOnMap);
+  }
+}
+
+function ensureMapInitialized() {
+  if (typeof L === 'undefined') {
+    console.warn('Leaflet library not loaded yet');
+    return;
+  }
+
+  const container = document.getElementById('mapContainer');
+  if (!container) return;
+
+  if (!state.map) {
+    // Moraine State Park Center: ~40.963, -80.085
+    state.map = L.map('mapContainer', {
+      zoomControl: true,
+      maxZoom: 18,
+      minZoom: 10
+    }).setView([40.956, -80.090], 13);
+
+    // OpenStreetMap standard tile layer
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(state.map);
+
+    state.markersGroup = L.featureGroup().addTo(state.map);
+  }
+
+  // Trigger resize fix when tab becomes visible
+  setTimeout(() => {
+    state.map.invalidateSize();
+    renderMapMarkers();
+  }, 150);
+}
+
+function renderMapMarkers() {
+  if (!state.map || !state.markersGroup) return;
+
+  state.markersGroup.clearLayers();
+
+  const countBadge = document.getElementById('mapBoxCount');
+  const filter = state.currentTrailFilter;
+  let visibleCount = 0;
+
+  const validBoxes = state.boxLocations.filter(b => {
+    if (filter !== 'all') {
+      const matchTrail = (b.trailArea || '').toLowerCase().includes(filter.toLowerCase());
+      if (!matchTrail) return false;
+    }
+    return b.lat != null && b.lng != null && !isNaN(b.lat) && !isNaN(b.lng);
+  });
+
+  validBoxes.forEach((box) => {
+    const isNorth = (box.trailArea || '').toLowerCase().includes('north');
+    const pinClass = isNorth ? 'north' : 'south';
+    const cleanNum = (box.boxCode || '').replace(/[^0-9]/g, '') || box.boxCode;
+
+    // Custom circular numbered pin icon
+    const icon = L.divIcon({
+      className: 'custom-pin-wrapper',
+      html: `<div class="custom-box-pin ${pinClass}">${escapeHtml(cleanNum)}</div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -16]
+    });
+
+    const marker = L.marker([box.lat, box.lng], { icon: icon });
+
+    const popupHtml = `
+      <div class="map-popup-card">
+        <h4>${escapeHtml(box.boxCode)}</h4>
+        <p><strong>Trail:</strong> ${escapeHtml(box.trailArea || 'Trail')}</p>
+        ${box.description ? `<p>${escapeHtml(box.description)}</p>` : ''}
+        <p style="font-size:0.75rem; color:#64748b;">📍 ${box.lat.toFixed(5)}, ${box.lng.toFixed(5)}</p>
+        <button class="map-popup-btn" onclick="window.openLogFormForBox('${escapeHtml(box.boxCode)}', '${escapeHtml(box.trailArea || 'North Shore')}')">
+          📝 Log Inspection
+        </button>
+      </div>
+    `;
+
+    marker.bindPopup(popupHtml);
+    state.markersGroup.addLayer(marker);
+    visibleCount++;
+  });
+
+  if (countBadge) {
+    countBadge.textContent = `${visibleCount} boxes mapped`;
+  }
+
+  if (visibleCount > 0 && filter === 'all' && state.markersGroup.getLayers().length > 0) {
+    state.map.fitBounds(state.markersGroup.getBounds().pad(0.1));
+  }
+}
+
+function locateUserOnMap() {
+  if (!navigator.geolocation) {
+    showToast('Geolocation is not supported on this device', 'warning');
+    return;
+  }
+
+  if (!state.map) {
+    ensureMapInitialized();
+  }
+
+  const btn = document.getElementById('btnLocateUser');
+  if (btn) btn.textContent = '⏳ Locating...';
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const acc = Math.round(pos.coords.accuracy);
+
+      if (state.userMarker) {
+        state.map.removeLayer(state.userMarker);
+      }
+
+      const userIcon = L.divIcon({
+        className: 'user-pin-wrapper',
+        html: `<div class="user-pulse-marker" title="Your Location"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+
+      state.userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(state.map);
+      state.userMarker.bindPopup(`<b>You are here</b><br>Accuracy: ±${acc}m`).openPopup();
+
+      state.map.setView([lat, lng], 15);
+      if (btn) btn.textContent = '📍 My Location';
+      showToast(`📍 Found your location (±${acc}m)`, 'success');
+    },
+    (err) => {
+      console.warn('Geolocation error:', err);
+      if (btn) btn.textContent = '📍 My Location';
+      showToast('Could not retrieve GPS position', 'warning');
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+// Global bridge called from Leaflet popup button
+window.openLogFormForBox = function(boxCode, trailArea) {
+  // 1. Switch to Form tab
+  const tabs = document.querySelectorAll('.tab-btn');
+  const contents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(t => t.classList.remove('active'));
+  contents.forEach(c => c.classList.remove('active'));
+
+  const formTabBtn = document.querySelector('.tab-btn[data-tab="tab-form"]');
+  const formContent = document.getElementById('tab-form');
+
+  if (formTabBtn) formTabBtn.classList.add('active');
+  if (formContent) formContent.classList.add('active');
+
+  // 2. Pre-fill box and trail
+  const boxInput = document.getElementById('boxCode');
+  const trailSelect = document.getElementById('trailArea');
+
+  if (boxInput) boxInput.value = boxCode;
+  if (trailSelect && trailArea) {
+    for (let i = 0; i < trailSelect.options.length; i++) {
+      if (trailSelect.options[i].text.toLowerCase().includes(trailArea.toLowerCase())) {
+        trailSelect.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast(`Selected ${boxCode} on ${trailArea}`, 'success');
+};
 
 // ========================================================
 // TOAST NOTIFICATIONS & UTILITIES

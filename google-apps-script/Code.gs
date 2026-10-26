@@ -2,21 +2,12 @@
  * Moraine State Park Bluebird Trail - Google Sheets Sync Webhook
  * 
  * Account: dugslade@gmail.com
- * Instructions:
- * 1. Open Google Sheets at https://sheets.google.com under your dugslade@gmail.com account.
- * 2. Create a new Spreadsheet: "Moraine State Park - Bluebird Monitoring"
- * 3. In the menu, click Extensions > Apps Script.
- * 4. Replace any default code with this entire script.
- * 5. Click "Deploy" > "New deployment".
- * 6. Select type: "Web app".
- * 7. Set:
- *    - Execute as: "Me (dugslade@gmail.com)"
- *    - Who has access: "Anyone" (allows offline mobile volunteers to submit without signing into Google)
- * 8. Click "Deploy", authorize permissions, and copy the Web App URL (starts with https://script.google.com/macros/s/...)
- * 9. Paste that URL into the Settings tab of your Moraine Bluebird Web App!
+ * Master Spreadsheet Tabs:
+ * 1. "Inspections"    - Daily field checks & logs submitted by volunteers
+ * 2. "Box Locations"  - Master registry of bird boxes, trail areas, and GPS coordinates
  */
 
-const HEADERS = [
+const INSPECTION_HEADERS = [
   'Submission Timestamp',
   'Box Number / Code',
   'Trail / Area',
@@ -36,7 +27,23 @@ const HEADERS = [
   'Local Sync ID'
 ];
 
+const BOX_LOCATION_HEADERS = [
+  'Box Number / Code',
+  'Trail / Area',
+  'GPS Coordinates',
+  'Description / Location Notes',
+  'Status'
+];
+
 function doGet(e) {
+  const params = e && e.parameter ? e.parameter : {};
+  const action = params.action;
+
+  // Retrieve Box Locations for Map
+  if (action === 'get_boxes') {
+    return fetchBoxLocationsResponse();
+  }
+
   return ContentService.createTextOutput(JSON.stringify({
     status: 'online',
     message: 'Moraine State Park Bluebird Sync Webhook is running',
@@ -46,18 +53,14 @@ function doGet(e) {
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
-  // Wait up to 30 seconds for concurrent submissions
   lock.tryLock(30000);
 
   try {
-    const sheet = getOrCreateSheet();
     let data;
-
     if (e.postData && e.postData.contents) {
       try {
         data = JSON.parse(e.postData.contents);
       } catch (err) {
-        // Fallback for form-urlencoded or parameter parsing
         data = e.parameter;
       }
     } else {
@@ -79,7 +82,15 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // Single inspection or batch inspections
+    // Retrieve Box Locations
+    if (data.action === 'get_boxes') {
+      return fetchBoxLocationsResponse();
+    }
+
+    // ----------------------------------------------------
+    // Log Inspections
+    // ----------------------------------------------------
+    const sheet = getOrCreateInspectionsSheet();
     let inspections = [];
     if (data.action === 'batch_log_inspections' && Array.isArray(data.inspections)) {
       inspections = data.inspections;
@@ -96,7 +107,6 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // Existing sync IDs to prevent duplicate rows
     const existingIds = getExistingSyncIds(sheet);
     const rowsToAdd = [];
     const addedIds = [];
@@ -105,7 +115,6 @@ function doPost(e) {
       const item = inspections[i];
       const syncId = item.id || ('legacy_' + Date.now() + '_' + i);
 
-      // Skip if already logged in sheet
       if (existingIds.has(syncId)) {
         continue;
       }
@@ -113,7 +122,7 @@ function doPost(e) {
       const actionsStr = Array.isArray(item.actions) ? item.actions.join(', ') : (item.actions || '');
       
       const row = [
-        new Date(), // Submission Timestamp
+        new Date(),
         item.boxCode || '',
         item.trailArea || '',
         item.volunteerName || '',
@@ -139,9 +148,8 @@ function doPost(e) {
 
     if (rowsToAdd.length > 0) {
       const startRow = sheet.getLastRow() + 1;
-      sheet.getRange(startRow, 1, rowsToAdd.length, HEADERS.length).setValues(rowsToAdd);
+      sheet.getRange(startRow, 1, rowsToAdd.length, INSPECTION_HEADERS.length).setValues(rowsToAdd);
       
-      // Format number columns
       sheet.getRange(startRow, 10, rowsToAdd.length, 2).setNumberFormat('#,##0');
       sheet.getRange(startRow, 13, rowsToAdd.length, 2).setNumberFormat('#,##0');
     }
@@ -162,7 +170,62 @@ function doPost(e) {
   }
 }
 
-function getOrCreateSheet() {
+// --------------------------------------------------------
+// BOX LOCATIONS HANDLERS
+// --------------------------------------------------------
+function fetchBoxLocationsResponse() {
+  const boxSheet = getOrCreateBoxLocationsSheet();
+  const lastRow = boxSheet.getLastRow();
+  const boxes = [];
+
+  if (lastRow > 1) {
+    const data = boxSheet.getRange(2, 1, lastRow - 1, BOX_LOCATION_HEADERS.length).getValues();
+    for (let r = 0; r < data.length; r++) {
+      const boxCode = String(data[r][0] || '').trim();
+      if (!boxCode) continue;
+
+      const trail = String(data[r][1] || 'North Shore').trim();
+      const coords = String(data[r][2] || '').trim();
+      const desc = String(data[r][3] || '').trim();
+      const status = String(data[r][4] || 'Active').trim();
+
+      let lat = null;
+      let lng = null;
+
+      if (coords) {
+        // Parse "lat, lng" or "(lat, lng)"
+        const clean = coords.replace(/[()]/g, '');
+        const parts = clean.split(',');
+        if (parts.length >= 2) {
+          const pLat = parseFloat(parts[0].trim());
+          const pLng = parseFloat(parts[1].trim());
+          if (!isNaN(pLat) && !isNaN(pLng)) {
+            lat = pLat;
+            lng = pLng;
+          }
+        }
+      }
+
+      boxes.push({
+        boxCode: boxCode,
+        trailArea: trail,
+        gpsCoords: coords,
+        lat: lat,
+        lng: lng,
+        description: desc,
+        status: status
+      });
+    }
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    count: boxes.length,
+    boxes: boxes
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getOrCreateInspectionsSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName('Inspections');
 
@@ -170,19 +233,50 @@ function getOrCreateSheet() {
     sheet = ss.insertSheet('Inspections', 0);
   }
 
-  // If first row is empty, setup headers and formatting
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(HEADERS);
+    sheet.appendRow(INSPECTION_HEADERS);
+    const headerRange = sheet.getRange(1, 1, 1, INSPECTION_HEADERS.length);
+    headerRange.setBackground('#1b4332');
+    headerRange.setFontColor('#ffffff');
+    headerRange.setFontWeight('bold');
+    headerRange.setHorizontalAlignment('center');
+    sheet.setFrozenRows(1);
+    for (let c = 1; c <= INSPECTION_HEADERS.length; c++) {
+      sheet.autoResizeColumn(c);
+    }
+  }
 
-    const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
-    headerRange.setBackground('#1b4332'); // Forest green
+  return sheet;
+}
+
+function getOrCreateBoxLocationsSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Box Locations');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('Box Locations');
+  }
+
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(BOX_LOCATION_HEADERS);
+    const headerRange = sheet.getRange(1, 1, 1, BOX_LOCATION_HEADERS.length);
+    headerRange.setBackground('#002D9C'); // IBM Blue / Navy
     headerRange.setFontColor('#ffffff');
     headerRange.setFontWeight('bold');
     headerRange.setHorizontalAlignment('center');
     sheet.setFrozenRows(1);
 
-    // Auto-fit column widths
-    for (let c = 1; c <= HEADERS.length; c++) {
+    // Populate standard sample boxes for Moraine State Park if brand new
+    const sampleBoxes = [
+      ['Box 1', 'North Shore', '40.963124, -80.085432', 'Near North Shore Trailhead kiosk', 'Active'],
+      ['Box 2', 'North Shore', '40.964210, -80.083150', 'Open meadow near mile marker 0.3', 'Active'],
+      ['Box 3', 'North Shore', '40.965840, -80.081200', 'East of bicycle rental pavilion', 'Active'],
+      ['Box 4', 'South Shore', '40.942150, -80.098450', 'Pleasant Valley picnic area', 'Active'],
+      ['Box 5', 'South Shore', '40.940890, -80.095320', 'South Shore boat launch shoreline', 'Active']
+    ];
+    sheet.getRange(2, 1, sampleBoxes.length, BOX_LOCATION_HEADERS.length).setValues(sampleBoxes);
+
+    for (let c = 1; c <= BOX_LOCATION_HEADERS.length; c++) {
       sheet.autoResizeColumn(c);
     }
   }
@@ -195,7 +289,6 @@ function getExistingSyncIds(sheet) {
   const lastRow = sheet.getLastRow();
   if (lastRow <= 1) return ids;
 
-  // Sync ID is column 17
   const syncIdCol = 17;
   const values = sheet.getRange(2, syncIdCol, lastRow - 1, 1).getValues();
   for (let r = 0; r < values.length; r++) {
