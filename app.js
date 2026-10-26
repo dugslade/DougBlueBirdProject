@@ -12,7 +12,7 @@ const STORAGE_KEYS = {
 const DEFAULT_SETTINGS = {
   scriptUrl: 'https://script.google.com/macros/s/AKfycbwW6O8ity04LON-VJVOFnUBd_PQrd-MAgCxzjJ6mhXVi2d9nmoj8gX3MHQREJAMbZ755Q/exec',
   defaultVolunteer: '',
-  defaultTrail: 'North Shore Trail'
+  defaultTrail: 'North Shore'
 };
 
 // Global state
@@ -79,7 +79,7 @@ function loadSettings() {
 
   if (scriptInput) scriptInput.value = state.settings.scriptUrl || '';
   if (volunteerInput) volunteerInput.value = state.settings.defaultVolunteer || '';
-  if (trailSelect) trailSelect.value = state.settings.defaultTrail || 'North Shore Trail';
+  if (trailSelect) trailSelect.value = state.settings.defaultTrail || 'North Shore';
 
   // Apply default to form
   if (formVolunteer && state.settings.defaultVolunteer) {
