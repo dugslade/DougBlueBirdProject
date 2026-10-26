@@ -187,17 +187,19 @@ function checkUrlParams() {
   if (boxParam) {
     const boxInput = document.getElementById('boxCode');
     if (boxInput) {
-      boxInput.value = boxParam.trim();
-      showToast(`Scanned: ${boxParam.trim()}`, 'success');
+      const cleanBox = decodeURIComponent(boxParam).trim();
+      boxInput.value = cleanBox;
+      showToast(`📍 Scanned: ${cleanBox}`, 'success');
     }
   }
 
   if (trailParam) {
+    const cleanTrail = decodeURIComponent(trailParam).trim();
     const trailSelect = document.getElementById('trailArea');
     if (trailSelect) {
-      // Find matching option or set value
       for (let i = 0; i < trailSelect.options.length; i++) {
-        if (trailSelect.options[i].text.toLowerCase().includes(trailParam.toLowerCase())) {
+        if (trailSelect.options[i].text.toLowerCase().includes(cleanTrail.toLowerCase()) ||
+            cleanTrail.toLowerCase().includes(trailSelect.options[i].text.toLowerCase())) {
           trailSelect.selectedIndex = i;
           break;
         }
@@ -512,39 +514,76 @@ function stopQrScanner() {
   }
 }
 
-function handleQrScanResult(text) {
-  let boxVal = text.trim();
+/**
+ * Robust QR payload parser supporting:
+ * - Full URLs (https://dugslade.github.io/DougBlueBirdProject/?box=Box%201&trail=South%20Shore)
+ * - Relative URLs (./index.html?box=Box%201&trail=South%20Shore)
+ * - Query strings (?box=Box%201&trail=South%20Shore)
+ * - JSON ({ "box": "Box 1", "trail": "South Shore" })
+ * - Plain text ("Box 1")
+ */
+function parseQrPayload(text) {
+  if (!text) return { box: '', trail: '' };
+  let str = String(text).trim();
 
-  // If text is a full URL (e.g., https://morainebirdtrail.app/?box=MSP-12)
-  if (boxVal.startsWith('http://') || boxVal.startsWith('https://')) {
+  // If contains a query string ?
+  if (str.includes('?')) {
     try {
-      const url = new URL(boxVal);
-      const b = url.searchParams.get('box') || url.searchParams.get('b') || url.searchParams.get('id');
-      const t = url.searchParams.get('trail') || url.searchParams.get('t');
-
-      if (b) boxVal = b;
-      if (t) {
-        const trailSelect = document.getElementById('trailArea');
-        if (trailSelect) {
-          for (let i = 0; i < trailSelect.options.length; i++) {
-            if (trailSelect.options[i].text.toLowerCase().includes(t.toLowerCase())) {
-              trailSelect.selectedIndex = i;
-              break;
-            }
-          }
-        }
+      const queryString = str.split('?')[1];
+      const params = new URLSearchParams(queryString);
+      const box = params.get('box') || params.get('b') || params.get('id') || '';
+      const trail = params.get('trail') || params.get('t') || '';
+      if (box || trail) {
+        return {
+          box: decodeURIComponent(box).trim(),
+          trail: decodeURIComponent(trail).trim()
+        };
       }
     } catch (e) {
-      // Keep plain text
+      console.warn('Error parsing QR query string:', e);
     }
   }
 
-  const boxInput = document.getElementById('boxCode');
-  if (boxInput) {
-    boxInput.value = boxVal;
-    if (navigator.vibrate) navigator.vibrate(100);
-    showToast(`📸 Box Scanned: ${boxVal}`, 'success');
+  // If JSON format
+  if (str.startsWith('{') && str.endsWith('}')) {
+    try {
+      const obj = JSON.parse(str);
+      return {
+        box: String(obj.box || obj.boxCode || obj.id || '').trim(),
+        trail: String(obj.trail || obj.trailArea || '').trim()
+      };
+    } catch (e) {}
   }
+
+  // Plain text fallback
+  return { box: str, trail: '' };
+}
+
+function handleQrScanResult(text) {
+  const parsed = parseQrPayload(text);
+  const boxCode = parsed.box;
+  const trailArea = parsed.trail;
+
+  const boxInput = document.getElementById('boxCode');
+  if (boxInput && boxCode) {
+    boxInput.value = boxCode;
+  }
+
+  if (trailArea) {
+    const trailSelect = document.getElementById('trailArea');
+    if (trailSelect) {
+      for (let i = 0; i < trailSelect.options.length; i++) {
+        if (trailSelect.options[i].text.toLowerCase().includes(trailArea.toLowerCase()) ||
+            trailArea.toLowerCase().includes(trailSelect.options[i].text.toLowerCase())) {
+          trailSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  }
+
+  if (navigator.vibrate) navigator.vibrate(100);
+  showToast(`📸 Scanned: ${boxCode || 'Box'}${trailArea ? ` (${trailArea})` : ''}`, 'success');
 }
 
 // ========================================================

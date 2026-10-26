@@ -152,7 +152,7 @@
     <div class="form-grid">
       <div>
         <label for="appUrl">PWA Web App Base URL</label>
-        <input type="text" id="appUrl" value="./index.html" placeholder="https://yourname.github.io/moraine-birds/">
+        <input type="text" id="appUrl" value="https://dugslade.github.io/DougBlueBirdProject/" placeholder="https://dugslade.github.io/DougBlueBirdProject/">
       </div>
       <div>
         <label for="trailName">Trail / Area</label>
@@ -187,7 +187,7 @@
   <script src="lib/qrcode.min.js"></script>
   <script>
     function generateLabels() {
-      const appUrl = (document.getElementById('appUrl').value || './index.html').trim();
+      let appUrl = (document.getElementById('appUrl').value || 'https://dugslade.github.io/DougBlueBirdProject/').trim();
       const trail = document.getElementById('trailName').value.trim();
       const prefix = document.getElementById('prefix').value;
       const start = parseInt(document.getElementById('startNum').value || '1', 10);
@@ -199,8 +199,11 @@
       for (let i = start; i <= end; i++) {
         const boxId = `${prefix}${i}`;
         
-        // Build QR link
-        const cleanBase = appUrl.endsWith('/') ? appUrl : (appUrl.includes('.html') ? appUrl : appUrl + '/');
+        // Build clean QR link
+        let cleanBase = appUrl;
+        if (!cleanBase.endsWith('/') && !cleanBase.includes('.html')) {
+          cleanBase += '/';
+        }
         const sep = cleanBase.includes('?') ? '&' : '?';
         const targetUrl = `${cleanBase}${sep}box=${encodeURIComponent(boxId)}&trail=${encodeURIComponent(trail)}`;
 
