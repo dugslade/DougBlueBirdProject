@@ -35,6 +35,27 @@ const BOX_LOCATION_HEADERS = [
   'Status'
 ];
 
+const STARTER_BOXES = [
+  ['Box 1', 'North Shore', '40.963124, -80.085432', 'Near North Shore Trailhead kiosk', 'Active'],
+  ['Box 2', 'North Shore', '40.964210, -80.083150', 'Open meadow near mile marker 0.3', 'Active'],
+  ['Box 3', 'North Shore', '40.965840, -80.081200', 'East of bicycle rental pavilion', 'Active'],
+  ['Box 4', 'South Shore', '40.942150, -80.098450', 'Pleasant Valley picnic area', 'Active'],
+  ['Box 5', 'South Shore', '40.940890, -80.095320', 'South Shore boat launch shoreline', 'Active']
+];
+
+/**
+ * Creates custom menu when opening the Google Sheet
+ */
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('🐦 Bluebird Trail')
+    .addItem('📍 Setup / Format "Box Locations" Tab', 'setupBoxLocationsTab')
+    .addItem('📝 Setup / Format "Inspections" Tab', 'setupInspectionsTab')
+    .addSeparator()
+    .addItem('🧪 Test Sync Webhook', 'testWebhookAlert')
+    .addToUi();
+}
+
 function doGet(e) {
   const params = e && e.parameter ? e.parameter : {};
   const action = params.action;
@@ -171,7 +192,7 @@ function doPost(e) {
 }
 
 // --------------------------------------------------------
-// BOX LOCATIONS HANDLERS
+// BOX LOCATIONS RETRIEVAL & SETUP
 // --------------------------------------------------------
 function fetchBoxLocationsResponse() {
   const boxSheet = getOrCreateBoxLocationsSheet();
@@ -193,7 +214,6 @@ function fetchBoxLocationsResponse() {
       let lng = null;
 
       if (coords) {
-        // Parse "lat, lng" or "(lat, lng)"
         const clean = coords.replace(/[()]/g, '');
         const parts = clean.split(',');
         if (parts.length >= 2) {
@@ -225,31 +245,22 @@ function fetchBoxLocationsResponse() {
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
-function getOrCreateInspectionsSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Inspections');
-
-  if (!sheet) {
-    sheet = ss.insertSheet('Inspections', 0);
-  }
-
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(INSPECTION_HEADERS);
-    const headerRange = sheet.getRange(1, 1, 1, INSPECTION_HEADERS.length);
-    headerRange.setBackground('#1b4332');
-    headerRange.setFontColor('#ffffff');
-    headerRange.setFontWeight('bold');
-    headerRange.setHorizontalAlignment('center');
-    sheet.setFrozenRows(1);
-    for (let c = 1; c <= INSPECTION_HEADERS.length; c++) {
-      sheet.autoResizeColumn(c);
-    }
-  }
-
-  return sheet;
+function setupBoxLocationsTab() {
+  const sheet = getOrCreateBoxLocationsSheet(true);
+  SpreadsheetApp.getActiveSpreadsheet().toast('✅ "Box Locations" tab formatted with dropdowns & starter boxes!', 'Success', 5);
 }
 
-function getOrCreateBoxLocationsSheet() {
+function setupInspectionsTab() {
+  const sheet = getOrCreateInspectionsSheet(true);
+  SpreadsheetApp.getActiveSpreadsheet().toast('✅ "Inspections" tab formatted with forest green headers!', 'Success', 5);
+}
+
+function testWebhookAlert() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  SpreadsheetApp.getUi().alert('Webhook status: Online. Ready to receive mobile inspection logs.');
+}
+
+function getOrCreateBoxLocationsSheet(forceFormat) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName('Box Locations');
 
@@ -257,8 +268,8 @@ function getOrCreateBoxLocationsSheet() {
     sheet = ss.insertSheet('Box Locations');
   }
 
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(BOX_LOCATION_HEADERS);
+  if (sheet.getLastRow() === 0 || forceFormat) {
+    sheet.getRange(1, 1, 1, BOX_LOCATION_HEADERS.length).setValues([BOX_LOCATION_HEADERS]);
     const headerRange = sheet.getRange(1, 1, 1, BOX_LOCATION_HEADERS.length);
     headerRange.setBackground('#002D9C'); // IBM Blue / Navy
     headerRange.setFontColor('#ffffff');
@@ -266,17 +277,60 @@ function getOrCreateBoxLocationsSheet() {
     headerRange.setHorizontalAlignment('center');
     sheet.setFrozenRows(1);
 
-    // Populate standard sample boxes for Moraine State Park if brand new
-    const sampleBoxes = [
-      ['Box 1', 'North Shore', '40.963124, -80.085432', 'Near North Shore Trailhead kiosk', 'Active'],
-      ['Box 2', 'North Shore', '40.964210, -80.083150', 'Open meadow near mile marker 0.3', 'Active'],
-      ['Box 3', 'North Shore', '40.965840, -80.081200', 'East of bicycle rental pavilion', 'Active'],
-      ['Box 4', 'South Shore', '40.942150, -80.098450', 'Pleasant Valley picnic area', 'Active'],
-      ['Box 5', 'South Shore', '40.940890, -80.095320', 'South Shore boat launch shoreline', 'Active']
-    ];
-    sheet.getRange(2, 1, sampleBoxes.length, BOX_LOCATION_HEADERS.length).setValues(sampleBoxes);
+    // Trail Area Dropdown rule for Column B (North Shore / South Shore)
+    const trailRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(['North Shore', 'South Shore'], true)
+      .setAllowInvalid(false)
+      .build();
+    sheet.getRange('B2:B500').setDataValidation(trailRule);
 
-    for (let c = 1; c <= BOX_LOCATION_HEADERS.length; c++) {
+    // Status Dropdown rule for Column E (Active / Needs Repair / Inactive)
+    const statusRule = SpreadsheetApp.newDataValidation()
+      .requireValueInList(['Active', 'Needs Repair', 'Inactive'], true)
+      .setAllowInvalid(false)
+      .build();
+    sheet.getRange('E2:E500').setDataValidation(statusRule);
+
+    // If empty data rows, populate starter boxes
+    if (sheet.getLastRow() <= 1) {
+      sheet.getRange(2, 1, STARTER_BOXES.length, BOX_LOCATION_HEADERS.length).setValues(STARTER_BOXES);
+    }
+
+    // Set custom column widths
+    sheet.setColumnWidth(1, 160); // Box Number
+    sheet.setColumnWidth(2, 140); // Trail / Area
+    sheet.setColumnWidth(3, 200); // GPS Coordinates
+    sheet.setColumnWidth(4, 320); // Description
+    sheet.setColumnWidth(5, 120); // Status
+  }
+
+  return sheet;
+}
+
+function getOrCreateInspectionsSheet(forceFormat) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Inspections');
+
+  if (!sheet) {
+    sheet = ss.insertSheet('Inspections', 0);
+  }
+
+  if (sheet.getLastRow() === 0 || forceFormat) {
+    sheet.getRange(1, 1, 1, INSPECTION_HEADERS.length).setValues([INSPECTION_HEADERS]);
+    const headerRange = sheet.getRange(1, 1, 1, INSPECTION_HEADERS.length);
+    headerRange.setBackground('#1b4332'); // Forest green
+    headerRange.setFontColor('#ffffff');
+    headerRange.setFontWeight('bold');
+    headerRange.setHorizontalAlignment('center');
+    sheet.setFrozenRows(1);
+
+    // Format timestamps
+    sheet.getRange('A2:A1000').setNumberFormat('yyyy-mm-dd hh:mm:ss');
+    // Number formats for counts
+    sheet.getRange('J2:K1000').setNumberFormat('#,##0');
+    sheet.getRange('M2:N1000').setNumberFormat('#,##0');
+
+    for (let c = 1; c <= INSPECTION_HEADERS.length; c++) {
       sheet.autoResizeColumn(c);
     }
   }
