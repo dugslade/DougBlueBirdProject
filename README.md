@@ -12,20 +12,20 @@ An offline-first, mobile Progressive Web App (PWA) for Moraine State Park volunt
 2. **Instant QR Code Scanning:**
    - Scan box QR codes with the phone's native camera or using the built-in in-app camera scanner.
    - Pre-fills Box Number and Trail Zone instantly.
-3. **Zero Configuration for Volunteers:**
+3. **Interactive Trail Map (🗺️):**
+   - Interactive Leaflet map displaying all bluebird box locations across **North Shore** and **South Shore**.
+   - **"📍 My Location"** real-time GPS tracker showing volunteer position walking along the trail.
+   - Tapping any box pin opens its details and a **"📝 Log Inspection"** button that pre-fills the form for that box.
+   - Reads directly from the dedicated **"Box Locations"** master registry in Google Sheets and caches offline!
+4. **Zero Configuration for Volunteers:**
    - The master Google Apps Script webhook URL is embedded directly into the app. Volunteers never need to configure settings.
-4. **Optimized for Field Use:**
+5. **Optimized for Field Use:**
    - Large tap targets and +/- stepper buttons for rapid logging with one thumb.
    - Auto-remembers volunteer name so they never have to re-type it.
    - 1-tap GPS coordinates capture.
-5. **Zero-Loss Data Queue & Auto-Sync:**
+6. **Zero-Loss Data Queue & Auto-Sync:**
    - Every inspection is saved locally on the device first.
    - When the phone reconnects to cell service or home Wi-Fi, it automatically syncs all pending checks to your Google Sheet under `dugslade@gmail.com`.
-6. **Interactive Trail Map (🗺️):**
-   - Live Leaflet map displaying all bluebird box locations across **North Shore** and **South Shore**.
-   - **"📍 My Location"** real-time GPS tracker showing volunteer position walking along the trail.
-   - Tapping any box pin opens its details and a **"📝 Log Inspection"** button that pre-fills the form for that box.
-   - Reads directly from the dedicated **"Box Locations"** master sheet in Google Sheets and caches offline!
 7. **Offline CSV Backup:**
    - Volunteers or coordinators can download a full `.csv` backup of all checks directly from their phone anytime.
 8. **Printable QR Code Generator (`qr-generator.html`):**
@@ -47,10 +47,13 @@ An offline-first, mobile Progressive Web App (PWA) for Moraine State Park volunt
 DougBlueBirdProject/
 ├── index.html                  # Main PWA mobile app interface
 ├── styles.css                  # Responsive field-optimized styling
-├── app.js                      # Core offline storage, sync, & scanner logic
-├── sw.js                       # Service Worker for offline caching
+├── app.js                      # Core offline storage, sync, map, & scanner logic
+├── sw.js                       # Service Worker for offline caching (v1.0.2)
 ├── manifest.json               # Web App Manifest for mobile installation
 ├── qr-generator.html           # Tool to generate & print box QR labels
+├── Moraine_Box_Locations_Starter.csv # Starter CSV template for box registry
+├── architecture.svg            # System architecture vector diagram
+├── architecture.png            # High-resolution architecture graphic
 ├── icons/                      # App icons for iOS & Android
 │   ├── icon.svg
 │   ├── icon-192.png
@@ -62,6 +65,57 @@ DougBlueBirdProject/
 └── google-apps-script/
     └── Code.gs                 # Webhook backend script for dugslade@gmail.com
 ```
+
+---
+
+## 🗺️ Interactive Trail Map & "Box Locations" Registry
+
+The system separates the **Box Locations Registry** from the **Daily Inspections Log** to keep both clean and organized.
+
+### 1. The "Box Locations" Master Sheet (Google Sheets)
+In your Google Sheet, the **"Box Locations"** tab contains the permanent registry of all nesting boxes in the park:
+
+| Box Number / Code | Trail / Area | GPS Coordinates | Description / Location Notes | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `Box 1` | `North Shore` | `40.963124, -80.085432` | Near North Shore Trailhead kiosk | Active |
+| `Box 2` | `North Shore` | `40.964210, -80.083150` | Open meadow near mile marker 0.3 | Active |
+| `Box 3` | `North Shore` | `40.965840, -80.081200` | East of bicycle rental pavilion | Active |
+| `Box 4` | `South Shore` | `40.942150, -80.098450` | Pleasant Valley picnic area | Active |
+| `Box 5` | `South Shore` | `40.940890, -80.095320` | South Shore boat launch shoreline | Active |
+
+- **Header Styling:** Styled in dark navy blue (`#002D9C`) with bold white text.
+- **Dropdown Validations:**
+  - `Trail / Area`: Restricted to **`North Shore`** and **`South Shore`**.
+  - `Status`: Restricted to **`Active`**, **`Needs Repair`**, and **`Inactive`**.
+- **GPS Coordinates Format:** Enter as decimal degrees: `Latitude, Longitude` (e.g. `40.963124, -80.085432`).
+
+### 2. How the Trail Map Works in the App
+- **Live Visual Map:** Opens centered on Moraine State Park / Lake Arthur.
+- **Color-Coded Numbered Pins:**
+  - 🔵 **Blue Badges:** North Shore boxes.
+  - 🟢 **Green Badges:** South Shore boxes.
+- **Trail Filters:** 1-tap filter buttons (`All Boxes`, `North Shore`, `South Shore`) to focus on a specific trail section.
+- **📍 "My Location" Button:** Activates phone GPS to display a pulsing live dot showing the volunteer's exact location on the trail.
+- **Tap-to-Log Action:** Tapping any pin shows the box number, trail, description, GPS coordinates, and a big button: **"📝 Log Inspection"**. Clicking it automatically switches to the inspection form with that box pre-filled!
+- **100% Offline Capability:** Box locations and map assets are stored in local phone storage, so volunteers can navigate the map even with zero cell service in deep hollows.
+- **🔄 "Refresh Pins" Button:** When you add or move boxes in your Google Sheet, volunteers can tap Refresh Pins while online to update their phone's local map cache.
+
+---
+
+## 🧪 Diagnostics & "Test Sync Webhook" Explained
+
+The system includes testing utilities to verify data flow:
+
+### 1. In Google Sheets (`🐦 Bluebird Trail` → `🧪 Test Sync Webhook`)
+- **What it does:** Runs an internal health check inside the Google Sheet script engine.
+- **Why it's useful:** Confirms that the Apps Script has proper authorization to access the spreadsheet and is ready to process incoming HTTP webhooks from volunteers.
+
+### 2. In Mobile App (`⚙️ Settings` → `🧪 Test Connection`)
+- **What it does:** Sends a live test ping (`action: 'ping'`) from the phone over the internet to your Google Apps Script URL.
+- **Why it's useful:**
+  - Verifies that your Web App URL is correctly deployed and reachable.
+  - Confirms that network requests can pass through without permission or firewall errors.
+  - Displays a green confirmation toast: *"✅ Webhook reached! Check your Google Sheet"*.
 
 ---
 
@@ -118,26 +172,26 @@ If a new volunteer forgets to prep ahead of time, the moment they scan **any box
    - Copy and paste the entire contents of [`DougBlueBirdProject/google-apps-script/Code.gs`](google-apps-script/Code.gs).
    - Click the **Save** (💾) icon.
 
-### Step 2: Deploy the Webhook
+### Step 2: Initialize Sheet Tabs via Custom Menu
 
-1. In the top-right of Apps Script, click **Deploy → New deployment**.
+1. In the Apps Script toolbar dropdown at the top, select **`setupBoxLocationsTab`** and click **▶️ Run**.
+2. Switch to your Google Sheet — the **"Box Locations"** tab will be created with navy blue headers, dropdown rules, and starter boxes.
+3. Refresh your Google Sheet tab in browser — you will now see the **`🐦 Bluebird Trail`** menu at the top:
+   - `📍 Setup / Format "Box Locations" Tab`
+   - `📝 Setup / Format "Inspections" Tab`
+   - `🧪 Test Sync Webhook`
+
+### Step 3: Deploy the Webhook
+
+1. In Apps Script, click **Deploy → New deployment** (or **Manage deployments** → **Edit**).
 2. Click the gear icon next to "Select type" and choose **Web app**.
-3. Configure the settings:
+3. Configure settings:
    - **Description:** `Moraine Bluebird Sync`
    - **Execute as:** `Me (dugslade@gmail.com)`
    - **Who has access:** `Anyone` *(allows volunteers' phones to submit without needing a Google login)*
 4. Click **Deploy**.
 5. Click **Authorize access** and select your `dugslade@gmail.com` account. *(Click "Advanced" → "Go to Untitled project (unsafe)" if prompted by Google)*.
-6. Copy the **Web App URL** (it looks like: `https://script.google.com/macros/s/AKfycb.../exec`).
-
-### Step 3: Link Webhook to the App
-
-The URL is already baked into `app.js` as the default. To verify or override:
-1. Open the Moraine Bluebird Web App.
-2. Tap the **⚙️ Settings** tab.
-3. Your Web App URL should be pre-populated.
-4. Click **🧪 Test Connection** and then **💾 Save Settings**.
-5. Check your Google Sheet — you will see the **Inspections** sheet automatically created with styled forest-green headers!
+6. Copy the **Web App URL** (starts with `https://script.google.com/macros/s/.../exec`).
 
 ---
 
@@ -160,7 +214,7 @@ To allow volunteers to access the app URL on their phones:
 
 1. Open [`DougBlueBirdProject/qr-generator.html`](qr-generator.html) in your browser.
 2. Enter your live PWA URL (e.g. `https://dugslade.github.io/DougBlueBirdProject/`).
-3. Set your Trail Name (e.g., `North Shore Trail`) and box numbers (e.g., `Box 1` to `Box 30`).
+3. Select your Trail Area (`North Shore` or `South Shore`) and box numbers (e.g., `Box 1` to `Box 30`).
 4. Click **Generate Labels** and then **Print Labels**.
 5. Affix the weatherproof/laminated labels to the side or front of each box.
 
@@ -169,7 +223,7 @@ To allow volunteers to access the app URL on their phones:
 ## 📝 Volunteer Field Inspection Workflow
 
 1. **At the Bird Box:**
-   - Volunteer points their phone camera at the QR code on the box.
+   - Volunteer points their phone camera at the QR code on the box (or taps the box on the **🗺️ Trail Map**).
    - The app opens with Box Number and Trail already filled in.
    - Volunteer logs:
      - Species & Box Status
