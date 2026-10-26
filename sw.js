@@ -1,5 +1,5 @@
 // Moraine State Park Bluebird Trail - Offline Service Worker
-const CACHE_NAME = 'moraine-bluebirds-v1.0.3';
+const CACHE_NAME = 'moraine-bluebirds-v1.0.4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -17,7 +17,16 @@ const ASSETS_TO_CACHE = [
   './lib/leaflet/leaflet.css',
   './lib/leaflet/images/marker-icon.png',
   './lib/leaflet/images/marker-icon-2x.png',
-  './lib/leaflet/images/marker-shadow.png'
+  './lib/leaflet/images/marker-shadow.png',
+  './images/birds/eastern_bluebird_male.jpg',
+  './images/birds/eastern_bluebird_female.jpg',
+  './images/birds/tree_swallow_male.jpg',
+  './images/birds/tree_swallow_female.jpg',
+  './images/birds/house_wren.jpg',
+  './images/birds/chickadee.jpg',
+  './images/birds/tufted_titmouse.jpg',
+  './images/birds/house_sparrow_male.jpg',
+  './images/birds/house_sparrow_female.jpg'
 ];
 
 // Install: Cache all static assets
