@@ -1,5 +1,5 @@
 // Moraine State Park Bluebird Trail - Offline Service Worker
-const CACHE_NAME = 'moraine-bluebirds-v1.0.5';
+const CACHE_NAME = 'moraine-bluebirds-v1.0.6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
