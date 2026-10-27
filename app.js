@@ -7,8 +7,11 @@
 const STORAGE_KEYS = {
   INSPECTIONS: 'moraine_bluebird_inspections',
   SETTINGS: 'moraine_bluebird_settings',
-  BOX_LOCATIONS: 'moraine_bluebird_box_locations'
+  BOX_LOCATIONS: 'moraine_bluebird_box_locations',
+  AUTH: 'moraine_bluebird_auth'
 };
+
+const PASSCODE = '258';
 
 const DEFAULT_SETTINGS = {
   scriptUrl: 'https://script.google.com/macros/s/AKfycbwW6O8ity04LON-VJVOFnUBd_PQrd-MAgCxzjJ6mhXVi2d9nmoj8gX3MHQREJAMbZ755Q/exec',
@@ -47,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadInspections();
   loadBoxLocations();
   registerServiceWorker();
+  initAuthGate();
   initNavigation();
   initFormControls();
   initScanner();
@@ -55,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkUrlParams();
   renderHistory();
   updateSyncStatus();
+  updateAuthUI();
 });
 
 // Register Service Worker for 100% Offline Caching
@@ -148,30 +153,159 @@ function saveInspections() {
 }
 
 // ========================================================
+// AUTHENTICATION & HIKER GATE (Passcode: 258)
+// ========================================================
+function isAuthorized() {
+  return localStorage.getItem(STORAGE_KEYS.AUTH) === 'authorized';
+}
+
+function setAuthorized(authorized) {
+  if (authorized) {
+    localStorage.setItem(STORAGE_KEYS.AUTH, 'authorized');
+  } else {
+    localStorage.removeItem(STORAGE_KEYS.AUTH);
+  }
+  updateAuthUI();
+}
+
+function initAuthGate() {
+  const btnUnlock = document.getElementById('btnUnlockPasscode');
+  const passInput = document.getElementById('passcodeInput');
+  const btnLock = document.getElementById('btnLockDevice');
+  const btnGuide = document.getElementById('btnHikerOpenGuide');
+  const btnMap = document.getElementById('btnHikerOpenMap');
+
+  if (btnUnlock && passInput) {
+    btnUnlock.addEventListener('click', () => {
+      validateAndUnlock(passInput.value);
+    });
+
+    passInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        validateAndUnlock(passInput.value);
+      } else if (passInput.value.length === 3) {
+        // Auto-validate on 3 digits
+        validateAndUnlock(passInput.value);
+      }
+    });
+
+    passInput.addEventListener('input', () => {
+      const err = document.getElementById('passcodeError');
+      if (err) err.textContent = '';
+      if (passInput.value.length === 3) {
+        validateAndUnlock(passInput.value);
+      }
+    });
+  }
+
+  if (btnLock) {
+    btnLock.addEventListener('click', () => {
+      setAuthorized(false);
+      showToast('🔒 Device locked. Hiker welcome view is active.', 'warning');
+      switchTab('tab-form');
+    });
+  }
+
+  if (btnGuide) {
+    btnGuide.addEventListener('click', () => switchTab('tab-guide'));
+  }
+
+  if (btnMap) {
+    btnMap.addEventListener('click', () => switchTab('tab-map'));
+  }
+}
+
+function validateAndUnlock(inputCode) {
+  const code = (inputCode || '').trim();
+  const errDiv = document.getElementById('passcodeError');
+  const passInput = document.getElementById('passcodeInput');
+
+  if (code === PASSCODE) {
+    if (errDiv) errDiv.textContent = '';
+    if (passInput) passInput.value = '';
+    setAuthorized(true);
+    if (navigator.vibrate) navigator.vibrate([50, 50, 100]);
+    showToast('✓ Volunteer device authorized! Welcome.', 'success');
+  } else if (code.length >= 3) {
+    if (errDiv) errDiv.textContent = 'Incorrect passcode. Try again.';
+    if (passInput) {
+      passInput.classList.add('shake');
+      setTimeout(() => passInput.classList.remove('shake'), 400);
+      passInput.select();
+    }
+    if (navigator.vibrate) navigator.vibrate(200);
+  }
+}
+
+function updateAuthUI() {
+  const authorized = isAuthorized();
+  const hikerSection = document.getElementById('hikerSection');
+  const volunteerSection = document.getElementById('volunteerFormSection');
+  const authBadge = document.getElementById('authStatusBadge');
+  const btnLock = document.getElementById('btnLockDevice');
+
+  if (hikerSection && volunteerSection) {
+    if (authorized) {
+      hikerSection.style.display = 'none';
+      volunteerSection.style.display = 'block';
+    } else {
+      hikerSection.style.display = 'block';
+      volunteerSection.style.display = 'none';
+    }
+  }
+
+  if (authBadge) {
+    if (authorized) {
+      authBadge.className = 'history-sync-status synced';
+      authBadge.textContent = '✓ Authorized Volunteer Device';
+    } else {
+      authBadge.className = 'history-sync-status pending';
+      authBadge.textContent = '🔒 Locked / Hiker View Active';
+    }
+  }
+
+  if (btnLock) {
+    btnLock.textContent = authorized ? '🔒 Lock Device / Test Hiker View' : '🔓 Unlocked (Currently Locked)';
+  }
+}
+
+// ========================================================
 // NAVIGATION & TABS
 // ========================================================
-function initNavigation() {
+function switchTab(targetId) {
   const tabs = document.querySelectorAll('.tab-btn');
   const contents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach((t) => {
+    if (t.dataset.tab === targetId) {
+      t.classList.add('active');
+    } else {
+      t.classList.remove('active');
+    }
+  });
+
+  contents.forEach((c) => {
+    if (c.id === targetId) {
+      c.classList.add('active');
+    } else {
+      c.classList.remove('active');
+    }
+  });
+
+  if (targetId === 'tab-map') {
+    setTimeout(ensureMapInitialized, 100);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function initNavigation() {
+  const tabs = document.querySelectorAll('.tab-btn');
 
   tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       const targetId = tab.dataset.tab;
-
-      tabs.forEach((t) => t.classList.remove('active'));
-      contents.forEach((c) => c.classList.remove('active'));
-
-      tab.classList.add('active');
-      const targetContent = document.getElementById(targetId);
-      if (targetContent) {
-        targetContent.classList.add('active');
-      }
-
-      if (targetId === 'tab-map') {
-        setTimeout(ensureMapInitialized, 100);
-      }
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      switchTab(targetId);
     });
   });
 }
@@ -184,17 +318,19 @@ function checkUrlParams() {
   const boxParam = params.get('box') || params.get('b') || params.get('id');
   const trailParam = params.get('trail') || params.get('t');
 
+  let cleanBox = '';
+  let cleanTrail = '';
+
   if (boxParam) {
+    cleanBox = decodeURIComponent(boxParam).trim();
     const boxInput = document.getElementById('boxCode');
     if (boxInput) {
-      const cleanBox = decodeURIComponent(boxParam).trim();
       boxInput.value = cleanBox;
-      showToast(`📍 Scanned: ${cleanBox}`, 'success');
     }
   }
 
   if (trailParam) {
-    const cleanTrail = decodeURIComponent(trailParam).trim();
+    cleanTrail = decodeURIComponent(trailParam).trim();
     const trailSelect = document.getElementById('trailArea');
     if (trailSelect) {
       for (let i = 0; i < trailSelect.options.length; i++) {
@@ -205,6 +341,15 @@ function checkUrlParams() {
         }
       }
     }
+  }
+
+  if (cleanBox) {
+    const boxPill = document.getElementById('hikerScannedBoxPill');
+    if (boxPill) {
+      boxPill.textContent = `📍 Scanned: ${cleanBox}${cleanTrail ? ` • ${cleanTrail}` : ''}`;
+      boxPill.style.display = 'inline-block';
+    }
+    showToast(`📍 Scanned: ${cleanBox}${cleanTrail ? ` (${cleanTrail})` : ''}`, 'success');
   }
 }
 
@@ -579,6 +724,14 @@ function handleQrScanResult(text) {
           break;
         }
       }
+    }
+  }
+
+  if (boxCode) {
+    const boxPill = document.getElementById('hikerScannedBoxPill');
+    if (boxPill) {
+      boxPill.textContent = `📍 Scanned: ${boxCode}${trailArea ? ` • ${trailArea}` : ''}`;
+      boxPill.style.display = 'inline-block';
     }
   }
 

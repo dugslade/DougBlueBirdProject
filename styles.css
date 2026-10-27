@@ -842,6 +842,85 @@ textarea:focus {
   letter-spacing: 0.02em;
 }
 
+/* Hiker Welcome & Passcode Gate */
+.hiker-section {
+  display: block;
+}
+
+.hiker-hero {
+  text-align: center;
+  padding: 20px 14px;
+  background: linear-gradient(135deg, #081c15 0%, #1b4332 100%);
+  color: #ffffff;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.hiker-hero-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 10px auto;
+  display: block;
+}
+
+.hiker-hero h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.hiker-hero p {
+  font-size: 0.88rem;
+  color: #bbf7d0;
+}
+
+.hiker-box-pill {
+  display: inline-block;
+  background: #ffffff;
+  color: var(--primary);
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-top: 10px;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.passcode-card {
+  background: #ffffff;
+  border: 2px solid var(--accent-blue);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.passcode-input {
+  width: 150px !important;
+  font-size: 2.2rem !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  letter-spacing: 12px !important;
+  padding: 8px !important;
+  margin: 12px auto !important;
+  display: block !important;
+  border: 2.5px solid var(--accent-blue) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--primary) !important;
+  background: #f0f9ff !important;
+}
+
+.passcode-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 6px;
+  min-height: 20px;
+}
+
 /* Utilities */
 .text-center { text-align: center; }
 .mt-2 { margin-top: 8px; }

@@ -66,8 +66,70 @@
   <!-- Main App Body -->
   <main class="container">
 
-    <!-- ==================== TAB 1: FORM ==================== -->
+    <!-- ==================== TAB 1: FORM & HIKER WELCOME ==================== -->
     <section class="tab-content active" id="tab-form">
+
+      <!-- Hiker Welcome & Volunteer Passcode Gate (Shown for unverified visitors) -->
+      <div id="hikerSection" class="hiker-section" style="display: none;">
+        <!-- Hero Banner -->
+        <div class="hiker-hero">
+          <img src="icons/icon.svg" alt="Moraine Bluebirds" class="hiker-hero-icon">
+          <h2>Moraine State Park Bluebird Trail</h2>
+          <p>Lake Arthur • Pennsylvania Department of Conservation and Natural Resources</p>
+          <div id="hikerScannedBoxPill" class="hiker-box-pill" style="display:none;">
+            📍 Nest Box Detected
+          </div>
+        </div>
+
+        <!-- Educational Information Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🐦 Welcome Hikers & Visitors!</span>
+          </div>
+          <p class="mb-2">
+            You are standing near one of Moraine State Park's official <strong>Eastern Bluebird Nest Boxes</strong>. Since the mid-20th century, community bluebird trails have helped restore bluebird populations across North America.
+          </p>
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); padding:12px; margin:10px 0;">
+            <h4 style="color:#166534; font-size:0.95rem; margin-bottom:4px;">🌿 How the Trail Works:</h4>
+            <p style="font-size:0.85rem; color:#14532d; margin-bottom:6px;">
+              Trained park volunteers monitor each box weekly from <strong>April through August</strong> to record egg counts, track chick growth, and safeguard nests against non-native competitors and predators.
+            </p>
+            <p style="font-size:0.85rem; color:#b91c1c; font-weight:700; margin:0;">
+              ⚠️ Please DO NOT open, tap, or touch this nest box. Disturbing the box can cause nesting parents to abandon eggs or baby birds to fledge prematurely.
+            </p>
+          </div>
+          <div class="flex-row mt-2">
+            <button type="button" class="btn-action secondary flex-1" id="btnHikerOpenGuide">
+              📖 Bird Guide
+            </button>
+            <button type="button" class="btn-action secondary flex-1" id="btnHikerOpenMap">
+              🗺️ Trail Map
+            </button>
+          </div>
+        </div>
+
+        <!-- Volunteer Passcode Card -->
+        <div class="passcode-card">
+          <h3 style="font-size:1.15rem; color:var(--primary); margin-bottom:4px;">🔐 Volunteer Monitor Sign-In</h3>
+          <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
+            Moraine Trail Volunteers: Enter the 3-digit trail passcode to unlock the field inspection form.
+          </p>
+          
+          <input type="tel" id="passcodeInput" class="passcode-input" maxlength="3" pattern="[0-9]*" inputmode="numeric" placeholder="•••" autocomplete="off">
+          
+          <div id="passcodeError" class="passcode-error"></div>
+
+          <button type="button" class="btn-action" id="btnUnlockPasscode" style="width:100%; max-width:240px; margin:8px auto 0 auto; display:block;">
+            🔓 Unlock Field Form
+          </button>
+          <p class="helper-text text-center mt-2">
+            Your device will remember your authorization for all boxes on the trail.
+          </p>
+        </div>
+      </div>
+
+      <!-- Volunteer Inspection Form Section (Shown when authorized) -->
+      <div id="volunteerFormSection">
       <form id="inspectionForm">
         
         <!-- Box Identification Card -->
@@ -276,6 +338,7 @@
         </button>
 
       </form>
+      </div><!-- End #volunteerFormSection -->
     </section>
 
     <!-- ==================== TAB 2: TRAIL MAP ==================== -->
@@ -475,6 +538,28 @@
 
     <!-- ==================== TAB 4: SETTINGS ==================== -->
     <section class="tab-content" id="tab-settings">
+
+      <!-- Volunteer Authorization Status & Security -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔐 Volunteer Device Authorization</span>
+        </div>
+        <p class="mb-2">Control whether this device displays the volunteer inspection form or the public hiker welcome screen.</p>
+        
+        <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:12px;">
+          <div>
+            <div style="font-weight:700; font-size:0.92rem; color:var(--text-main);">Current Status:</div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">Passcode protected (258)</div>
+          </div>
+          <span id="authStatusBadge" class="history-sync-status synced">✓ Authorized</span>
+        </div>
+
+        <button type="button" class="btn-action secondary" id="btnLockDevice" style="width:100%;">
+          🔒 Lock Device / Test Hiker View
+        </button>
+        <p class="helper-text mt-2">Locking the device allows testing the 3-digit PIN gate and educational screen shown to hikers who scan a box QR code.</p>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <span class="card-title">⚙️ Google Sheets Sync & Preferences</span>

@@ -31,7 +31,11 @@ An offline-first, mobile Progressive Web App (PWA) for Moraine State Park volunt
 8. **Printable QR Code Generator (`qr-generator.html`):**
    - Built-in generator to print weatherproof QR code stickers/labels for all Moraine boxes.
 9. **Species & Nest Identification Guide:**
-   - In-app guide for Eastern Bluebirds, Tree Swallows, House Wrens, Chickadees, and invasive House Sparrows.
+   - In-app guide with field identification photos (males & females) for Eastern Bluebirds, Tree Swallows, House Wrens, Chickadees, Tufted Titmice, and invasive House Sparrows.
+10. **Hiker Welcome Screen & 3-Digit Passcode Gate (`258`):**
+    - **Curious Hikers:** Scanning a box QR code displays a welcoming educational card explaining Moraine State Park's bluebird conservation program, nesting season, and a gentle reminder not to disturb the nest box.
+    - **Volunteer Monitors:** Entering the 3-digit PIN code (`258`) unlocks the full field inspection form. The authorization is remembered across all boxes during trail monitoring.
+    - **Settings Controls:** Easily lock the device or test the hiker experience at any time from the Settings tab.
 
 ---
 
